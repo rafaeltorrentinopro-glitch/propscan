@@ -4,1761 +4,497 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PropScan — L'outil des investisseurs immobiliers</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-/* ══════════════════════════════════════
-   RESET & ROOT — LIGHT THEME
-══════════════════════════════════════ */
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  /* Backgrounds */
-  --bg:#F7F6F2;--bg2:#FFFFFF;--bg3:#F2F1ED;--bg4:#ECEAE4;
-  --anth:#F2F1ED;--anth2:#ECEAE4;--anth3:#E5E3DC;
-  /* Or */
-  --or:#C9A84C;--or2:#B8922A;--or3:rgba(201,168,76,0.1);--or-br:rgba(201,168,76,0.25);
-  /* Textes */
-  --white:#111111;--w2:#444444;--w3:#888888;--w4:#BBBBBB;
-  /* Accents */
-  --green:#1A8C4E;--red:#C0392B;--blue:#2563EB;
-  /* Bordures */
-  --br:rgba(0,0,0,0.07);--br2:rgba(0,0,0,0.12);
-  --radius:4px;
+  --or:#C9A84C;--or2:#B8922A;
+  --bg:#F7F6F2;--white:#FFFFFF;
+  --dark:#111111;--grey:#666;--lgrey:#999;
+  --br:#E8E4DB;
 }
-html,body{height:100%;overflow:hidden;font-family:'Syne',sans-serif;font-size:13px;background:var(--bg);color:var(--white);-webkit-font-smoothing:antialiased;}
+html{scroll-behavior:smooth;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--dark);-webkit-font-smoothing:antialiased;}
 
-/* ══════════════════════════════════════
-   LAYOUT
-══════════════════════════════════════ */
-#app{display:flex;flex-direction:column;height:100vh;}
-.topbar{height:52px;background:#fff;border-bottom:1px solid var(--br);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
-.main{display:flex;flex:1;overflow:hidden;}
-.sidebar{width:210px;background:#fff;border-right:1px solid var(--br);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
-.content{flex:1;overflow-y:auto;background:var(--bg);}
-.page{display:none;padding:28px;animation:fadeIn .15s ease;}
-.page.on{display:block;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:translateY(0);}}
-
-/* ══════════════════════════════════════
-   TOPBAR
-══════════════════════════════════════ */
-.tb-logo{display:flex;align-items:center;gap:8px;margin-right:12px;cursor:pointer;}
-.tb-lname{font-size:15px;font-weight:800;color:#111;letter-spacing:-0.3px;}
-.tb-search{flex:1;max-width:300px;background:var(--bg3);border:1.5px solid var(--br);padding:7px 12px;font-family:'Syne',sans-serif;font-size:12px;color:#111;outline:none;border-radius:100px;}
-.tb-search::placeholder{color:var(--w4);}
-.tb-search:focus{border-color:var(--or);background:#fff;}
-.tb-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
-.tb-notif{width:32px;height:32px;background:var(--bg3);border:1.5px solid var(--br);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:13px;}
-.tb-notif-dot{position:absolute;top:-1px;right:-1px;width:8px;height:8px;background:var(--or);border-radius:50%;border:2px solid #fff;}
-.tb-user{display:flex;align-items:center;gap:8px;padding:5px 12px;background:var(--bg3);border:1.5px solid var(--br);border-radius:100px;cursor:pointer;transition:border-color .1s;}
-.tb-user:hover{border-color:var(--or);}
-.tb-av{width:22px;height:22px;background:var(--or);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;}
-.tb-uname{font-size:12px;color:#444;font-weight:500;}
-.btn-or{padding:7px 16px;background:var(--or);color:#fff;border:none;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border-radius:100px;transition:background .1s;white-space:nowrap;}
-.btn-or:hover{background:var(--or2);}
-.btn-ghost{padding:6px 14px;background:#fff;border:1.5px solid var(--br2);color:#555;font-family:'Syne',sans-serif;font-size:12px;cursor:pointer;border-radius:100px;transition:all .1s;white-space:nowrap;font-weight:500;}
-.btn-ghost:hover{color:var(--or);border-color:var(--or);}
-
-/* ══════════════════════════════════════
-   SIDEBAR
-══════════════════════════════════════ */
-.sb-section{padding:14px 14px 5px;font-family:'DM Mono',monospace;font-size:8px;color:#BBB;letter-spacing:2px;text-transform:uppercase;}
-.sb-item{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;border-radius:var(--radius);margin:1px 8px;transition:all .1s;color:#666;font-size:12px;font-weight:500;}
-.sb-item:hover{background:var(--bg3);color:#111;}
-.sb-item.on{background:var(--or3);color:var(--or);border:1.5px solid var(--or-br);font-weight:700;}
-.sb-item .ico{font-size:14px;width:18px;text-align:center;}
-.sb-badge{margin-left:auto;font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;}
-.sb-badge.or{background:var(--or3);color:var(--or);}
-.sb-badge.red{background:rgba(192,57,43,0.1);color:var(--red);}
-.sb-footer{margin-top:auto;padding:14px;border-top:1px solid var(--br);}
-.sb-plan{background:var(--or3);border:1.5px solid var(--or-br);border-radius:var(--radius);padding:11px 14px;}
-.sb-plan-title{font-size:12px;font-weight:700;color:var(--or);margin-bottom:2px;}
-.sb-plan-sub{font-size:10px;color:#888;font-family:'DM Mono',monospace;}
-
-/* ══════════════════════════════════════
-   COMPONENTS
-══════════════════════════════════════ */
-.pg-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;}
-.pg-title{font-size:22px;font-weight:800;color:#111;letter-spacing:-0.8px;}
-.pg-sub{font-size:11px;color:#999;margin-top:3px;font-family:'DM Mono',monospace;}
-.pg-actions{display:flex;gap:8px;}
-
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-.kpi{background:#fff;border:1.5px solid var(--br);padding:16px 18px;border-radius:var(--radius);position:relative;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
-.kpi::after{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--or);}
-.kpi-label{font-size:9px;font-weight:600;color:#999;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-family:'DM Mono',monospace;}
-.kpi-val{font-size:26px;font-weight:700;color:#111;letter-spacing:-1px;font-family:'DM Mono',monospace;margin-bottom:3px;}
-.kpi-delta{font-size:11px;font-weight:600;}
-.kpi-delta.up{color:var(--green);}
-.kpi-delta.dn{color:var(--red);}
-.kpi-delta.neu{color:#999;}
-
-.card{background:#fff;border:1.5px solid var(--br);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
-.card-head{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-bottom:1px solid var(--br);background:var(--bg3);}
-.card-title{font-size:10px;font-weight:700;color:#666;letter-spacing:1px;text-transform:uppercase;font-family:'DM Mono',monospace;}
-.card-action{font-size:11px;color:var(--or);cursor:pointer;font-weight:600;}
-.card-action:hover{color:var(--or2);}
-
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
-.g-1-2{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;}
-
-/* Table */
-.tbl-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;}
-thead tr{background:var(--bg3);}
-th{padding:9px 14px;text-align:left;font-size:9px;font-weight:700;color:#888;letter-spacing:1px;text-transform:uppercase;border-bottom:1.5px solid var(--br);font-family:'DM Mono',monospace;white-space:nowrap;}
-td{padding:11px 14px;border-bottom:1px solid var(--br);vertical-align:middle;}
-tr:last-child td{border:none;}
-tr:hover td{background:#FAFAF7;}
-.td-main{font-size:12px;font-weight:600;color:#111;margin-bottom:2px;}
-.td-sub{font-size:10px;color:#999;font-family:'DM Mono',monospace;}
-.td-price{font-size:13px;font-weight:700;color:#111;font-family:'DM Mono',monospace;}
-.td-renta{font-size:12px;font-weight:700;color:var(--green);font-family:'DM Mono',monospace;}
-.td-score{font-size:12px;font-weight:700;color:var(--or);font-family:'DM Mono',monospace;}
-.td-cf{font-size:12px;color:var(--blue);font-family:'DM Mono',monospace;}
-
-.tag{display:inline-block;font-size:8px;font-weight:700;padding:2px 7px;border-radius:100px;letter-spacing:0.5px;text-transform:uppercase;}
-.tag-part{background:rgba(26,140,78,0.08);color:var(--green);border:1px solid rgba(26,140,78,0.2);}
-.tag-pro{background:rgba(37,99,235,0.08);color:var(--blue);border:1px solid rgba(37,99,235,0.2);}
-.tag-opp{background:var(--or3);color:var(--or);border:1px solid var(--or-br);}
-.tag-new{background:rgba(192,57,43,0.08);color:var(--red);border:1px solid rgba(192,57,43,0.2);}
-
-.btn-sm{padding:5px 12px;border:1.5px solid var(--br2);background:#fff;font-size:10px;font-weight:600;color:#555;cursor:pointer;font-family:'Syne',sans-serif;border-radius:100px;transition:all .1s;}
-.btn-sm:hover{border-color:var(--or);color:var(--or);}
-.btn-sm-or{padding:5px 12px;background:var(--or);border:none;font-size:10px;font-weight:700;color:#fff;cursor:pointer;font-family:'Syne',sans-serif;border-radius:100px;}
-.btn-sm-or:hover{background:var(--or2);}
-
-/* Forms */
-.form-section{background:#fff;border:1.5px solid var(--br);border-radius:var(--radius);padding:20px 22px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,0.03);}
-.fs-title{font-size:9px;font-weight:700;color:#999;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--br);font-family:'DM Mono',monospace;}
-.field{margin-bottom:12px;}
-.field label{display:block;font-size:10px;font-weight:600;color:#777;margin-bottom:5px;letter-spacing:0.3px;text-transform:uppercase;font-family:'DM Mono',monospace;}
-.field input,.field select,.field textarea{width:100%;background:var(--bg3);border:1.5px solid var(--br);padding:9px 12px;font-family:'Syne',sans-serif;font-size:12px;color:#111;outline:none;transition:border .15s,background .15s;border-radius:var(--radius);}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--or);background:#fff;}
-.field input[readonly]{background:var(--bg4);color:#999;}
-.field input[type="color"]{height:38px;cursor:pointer;padding:4px;}
-.field select option{background:#fff;}
-.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
-
-/* Result box */
-.result-box{background:var(--bg3);border:1.5px solid var(--or-br);border-radius:var(--radius);padding:16px 18px;margin-top:8px;}
-.rb-title{font-size:9px;font-weight:700;color:var(--or);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-family:'DM Mono',monospace;}
-.rb-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(0,0,0,0.05);}
-.rb-row:last-child{border:none;}
-.rb-label{font-size:12px;color:#666;}
-.rb-val{font-size:12px;font-weight:700;font-family:'DM Mono',monospace;}
-.rb-val.or{color:var(--or);}
-.rb-val.green{color:var(--green);}
-.rb-val.red{color:var(--red);}
-
-/* Row items */
-.row-item{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--br);transition:background .1s;cursor:pointer;}
-.row-item:last-child{border:none;}
-.row-item:hover{background:var(--bg3);}
-.ri-img{width:48px;height:36px;background:var(--bg3);border-radius:var(--radius);object-fit:cover;flex-shrink:0;}
-.ri-ico{width:36px;height:28px;background:var(--bg3);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
-.ri-main{font-size:12px;font-weight:600;color:#111;margin-bottom:2px;}
-.ri-sub{font-size:10px;color:#999;font-family:'DM Mono',monospace;}
-.ri-val{font-size:13px;font-weight:700;font-family:'DM Mono',monospace;text-align:right;white-space:nowrap;}
-
-/* Data row */
-.data-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--br);}
-.data-row:last-child{border:none;}
-.dr-label{font-size:12px;color:#666;}
-.dr-val{font-size:12px;font-weight:700;font-family:'DM Mono',monospace;color:#111;}
-.dr-val.or{color:var(--or);}
-.dr-val.green{color:var(--green);}
-.dr-val.red{color:var(--red);}
-
-/* Toggle */
-.toggle{position:relative;width:34px;height:18px;flex-shrink:0;}
-.toggle input{opacity:0;width:0;height:0;position:absolute;}
-.tg{position:absolute;cursor:pointer;inset:0;background:#DDD;border-radius:18px;transition:.2s;}
-.tg::before{content:'';position:absolute;width:12px;height:12px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
-.toggle input:checked+.tg{background:var(--or);}
-.toggle input:checked+.tg::before{transform:translateX(16px);}
-
-/* Filters */
-.filters{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
-.filter{padding:6px 14px;border:1.5px solid var(--br2);background:#fff;font-size:11px;font-weight:500;color:#666;cursor:pointer;border-radius:100px;transition:all .1s;font-family:'Syne',sans-serif;}
-.filter:hover{border-color:var(--or);color:var(--or);}
-.filter.on{background:var(--or);color:#fff;border-color:var(--or);font-weight:700;}
-
-/* Toast */
-.toast{position:fixed;bottom:20px;right:20px;background:#111;color:#fff;padding:11px 20px;font-size:12px;font-weight:600;border-radius:100px;z-index:9999;transform:translateY(80px);opacity:0;transition:all .25s;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,0.15);}
-.toast.on{transform:translateY(0);opacity:1;}
-
-/* Modal */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
-.modal-bg.on{display:flex;}
-.modal{background:#fff;border:1.5px solid var(--br);border-radius:8px;padding:30px;width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.15);}
-.modal h3{font-size:17px;font-weight:800;color:#111;margin-bottom:4px;}
-.modal p{font-size:12px;color:#888;margin-bottom:20px;line-height:1.6;}
-.modal-close{float:right;background:none;border:none;cursor:pointer;color:#999;font-size:18px;}
-
-/* Share link */
-.share-link{background:var(--bg3);border:1.5px solid var(--br2);padding:11px 14px;font-size:11px;font-family:'DM Mono',monospace;color:var(--or);border-radius:var(--radius);word-break:break-all;margin-bottom:10px;}
-
-/* ══════════════════════════════════════
-   ANNONCE IMPORT
-══════════════════════════════════════ */
-.import-box{background:var(--bg3);border:2px dashed var(--or-br);border-radius:var(--radius);padding:20px;margin-bottom:14px;transition:border-color .15s;}
-.import-box:hover{border-color:var(--or);}
-.import-row{display:flex;gap:8px;}
-.import-input{flex:1;background:#fff;border:1.5px solid var(--br2);padding:10px 14px;font-family:'Syne',sans-serif;font-size:12px;color:#111;outline:none;border-radius:var(--radius);}
-.import-input:focus{border-color:var(--or);}
-.import-input::placeholder{color:#BBB;}
-.import-preview{display:none;background:#fff;border:1.5px solid var(--or-br);border-radius:var(--radius);padding:14px;margin-top:10px;}
-.import-preview.show{display:flex;gap:12px;}
-.import-img{width:80px;height:60px;object-fit:cover;border-radius:var(--radius);background:var(--bg3);flex-shrink:0;}
-.import-info{flex:1;}
-.import-title{font-size:12px;font-weight:700;color:#111;margin-bottom:4px;}
-.import-meta{font-size:10px;color:#999;font-family:'DM Mono',monospace;margin-bottom:6px;}
-.import-price{font-size:16px;font-weight:800;color:var(--or);font-family:'DM Mono',monospace;}
-
-/* ══════════════════════════════════════
-   DVF BAR
-══════════════════════════════════════ */
-.dvf-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-top:5px;}
-.dvf-fill{height:100%;background:linear-gradient(90deg,var(--or3),var(--or));border-radius:2px;transition:width 1s ease;}
-
-/* ══════════════════════════════════════
-   PDF PREVIEW
-══════════════════════════════════════ */
-.pdf-preview{background:#fff;border-radius:var(--radius);overflow:hidden;border:1.5px solid var(--br);}
-.pdf-hd{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;}
-.pdf-brand{font-size:12px;font-weight:800;letter-spacing:-0.3px;}
-.pdf-badge{font-size:8px;color:rgba(255,255,255,0.5);font-family:'DM Mono',monospace;}
-.pdf-bd{padding:12px 14px;background:#FAFAF8;}
-.pdf-prop-title{font-size:12px;font-weight:700;color:#111;margin-bottom:2px;}
-.pdf-prop-sub{font-size:9px;color:#888;margin-bottom:10px;font-family:'DM Mono',monospace;}
-.pdf-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#E8E8E5;margin-bottom:10px;}
-.pdf-met{background:#fff;padding:7px 5px;text-align:center;}
-.pdf-met-v{font-size:12px;font-weight:700;color:#111;}
-.pdf-met-l{font-size:7px;color:#999;letter-spacing:0.3px;text-transform:uppercase;margin-top:1px;}
-.pdf-footer{padding:7px 14px;background:#F5F5F0;border-top:1px solid #EEEEE8;display:flex;justify-content:space-between;font-size:8px;color:#bbb;font-family:'DM Mono',monospace;}
-
-/* ══════════════════════════════════════
-   LOGO UPLOAD
-══════════════════════════════════════ */
-.logo-drop{border:2px dashed var(--br2);padding:18px;text-align:center;cursor:pointer;background:var(--bg3);position:relative;border-radius:var(--radius);transition:all .15s;}
-.logo-drop:hover{border-color:var(--or);background:#fff;}
-.logo-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
-.logo-preview{max-height:36px;max-width:120px;object-fit:contain;display:none;}
-.logo-drop-text{font-size:11px;color:#888;}
-.logo-drop-sub{font-size:9px;color:#BBB;margin-top:2px;}
-
-/* ══════════════════════════════════════
-   ACTIVITY
-══════════════════════════════════════ */
-.act-row{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--br);}
-.act-row:last-child{border:none;}
-.act-bar{width:3px;background:var(--br);flex-shrink:0;border-radius:2px;margin-top:3px;}
-.act-bar.or{background:var(--or);}
-.act-bar.green{background:var(--green);}
-.act-bar.blue{background:var(--blue);}
-.act-text{font-size:12px;color:#333;line-height:1.5;}
-.act-time{font-size:10px;color:#BBB;margin-top:2px;font-family:'DM Mono',monospace;}
-
-/* ══════════════════════════════════════
-   ALERT ITEMS
-══════════════════════════════════════ */
-.alert-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--br);transition:background .1s;}
-.alert-item:last-child{border:none;}
-.alert-item:hover{background:var(--bg3);}
-.ai-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-.ai-body{flex:1;}
-.ai-title{font-size:12px;font-weight:600;color:#111;margin-bottom:2px;}
-.ai-sub{font-size:10px;color:#888;font-family:'DM Mono',monospace;}
-.ai-time{font-size:10px;color:#BBB;white-space:nowrap;font-family:'DM Mono',monospace;}
-.ai-badge{font-size:9px;font-weight:700;padding:3px 10px;border-radius:100px;}
-.badge-on{background:rgba(26,140,78,0.1);color:var(--green);border:1px solid rgba(26,140,78,0.2);}
-.badge-off{background:var(--bg3);color:#999;border:1px solid var(--br);}
-
-/* Stat row */
-.stat-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--br);}
-.stat-row:last-child{border:none;}
-.sr-label{font-size:12px;color:#666;flex:1;}
-.sr-val{font-size:12px;font-weight:700;font-family:'DM Mono',monospace;color:#111;}
-.sr-val.or{color:var(--or);}
-.sr-val.green{color:var(--green);}
-
-/* ══════════════════════════════════════
-   LOGIN
-══════════════════════════════════════ */
-#login{
-  position:fixed;inset:0;z-index:9000;
-  display:grid;grid-template-columns:1fr 440px;
-  background:#F7F6F2;
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(247,246,242,0.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--br);
+  padding:0 40px;height:60px;
+  display:flex;align-items:center;justify-content:space-between;
 }
-/* ── Colonne gauche claire ── */
-.ll{
-  background:#F7F6F2;
-  padding:56px 64px;
-  display:flex;flex-direction:column;justify-content:space-between;
+.nav-logo{display:flex;align-items:center;gap:9px;}
+.nav-logo-name{font-size:16px;font-weight:800;color:var(--dark);letter-spacing:-0.3px;}
+.nav-links{display:flex;align-items:center;gap:28px;}
+.nav-link{font-size:13px;font-weight:500;color:var(--grey);text-decoration:none;transition:color .1s;}
+.nav-link:hover{color:var(--dark);}
+.nav-actions{display:flex;align-items:center;gap:10px;}
+.btn-login{padding:8px 18px;background:transparent;border:1.5px solid var(--br);color:var(--dark);font-family:'Syne',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border-radius:100px;transition:all .15s;text-decoration:none;}
+.btn-login:hover{border-color:var(--dark);}
+.btn-cta{padding:8px 20px;background:var(--dark);color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border-radius:100px;border:none;transition:background .15s;text-decoration:none;}
+.btn-cta:hover{background:#333;}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:120px 40px 80px;
   position:relative;overflow:hidden;
 }
-.ll-bg-deco{
-  position:absolute;bottom:-80px;right:-80px;
-  width:420px;height:420px;
-  background:radial-gradient(circle,rgba(201,168,76,0.07),transparent 65%);
-  pointer-events:none;
+.hero-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  background:#fff;border:1.5px solid var(--br);
+  padding:6px 14px;border-radius:100px;
+  font-size:12px;font-weight:600;color:var(--grey);
+  margin-bottom:28px;
 }
-.ll-logo{display:flex;align-items:center;gap:10px;margin-bottom:0;}
-.ll-lname{font-size:17px;font-weight:800;color:#111;letter-spacing:-0.3px;}
-.ll-center{flex:1;display:flex;flex-direction:column;justify-content:center;padding:40px 0;}
-.ll-h1{
-  font-size:62px;font-weight:800;color:#111;
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--or);}
+.hero-h1{
+  font-size:clamp(52px,7vw,88px);
+  font-weight:800;color:var(--dark);
   line-height:1.0;letter-spacing:-3px;
-  margin-bottom:24px;
+  margin-bottom:20px;max-width:900px;
 }
-.ll-h1 em{font-style:normal;color:var(--or);}
-.ll-p{
-  font-size:16px;color:#666;
-  line-height:1.7;max-width:480px;
-  margin-bottom:40px;
+.hero-h1 em{font-style:normal;color:var(--or);}
+.hero-sub{
+  font-size:18px;color:var(--grey);
+  line-height:1.6;max-width:520px;margin-bottom:36px;
 }
-.ll-chips{display:flex;gap:10px;flex-wrap:wrap;}
-.ll-chip{
-  display:flex;align-items:center;gap:7px;
-  padding:8px 14px;background:#fff;
-  border:1px solid #E8E4DB;border-radius:100px;
-  font-size:12px;font-weight:600;color:#333;
+.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:56px;}
+.btn-hero-or{
+  padding:14px 32px;background:var(--or);color:#fff;
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:700;
+  border-radius:100px;border:none;cursor:pointer;
+  transition:background .15s;text-decoration:none;display:inline-block;
 }
-.ll-chip-dot{width:7px;height:7px;border-radius:50%;background:var(--or);flex-shrink:0;}
-.ll-stats{display:flex;gap:0;border-top:1px solid #E8E4DB;padding-top:28px;}
-.ls{padding-right:32px;border-right:1px solid #E8E4DB;margin-right:32px;}
-.ls:last-child{border:none;margin:0;padding:0;}
-.ls-v{font-size:32px;font-weight:700;color:#111;letter-spacing:-1.5px;font-family:'DM Mono',monospace;}
-.ls-v em{font-style:normal;color:var(--or);}
-.ls-l{font-size:11px;color:#999;letter-spacing:0.5px;margin-top:3px;}
+.btn-hero-or:hover{background:var(--or2);}
+.btn-hero-ghost{
+  padding:14px 28px;background:#fff;
+  border:1.5px solid var(--br);color:var(--dark);
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:600;
+  border-radius:100px;cursor:pointer;transition:all .15s;
+  text-decoration:none;display:inline-block;
+}
+.btn-hero-ghost:hover{border-color:var(--dark);}
 
-/* ── Colonne droite formulaire ── */
-.lr{
-  background:#fff;
-  display:flex;align-items:center;justify-content:center;
-  padding:48px 48px;
-  border-left:1px solid #E8E4DB;
-  box-shadow:-20px 0 60px rgba(0,0,0,0.04);
+/* Stats hero */
+.hero-stats{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;}
+.hs{text-align:center;}
+.hs-v{font-size:28px;font-weight:800;color:var(--dark);font-family:'DM Mono',monospace;letter-spacing:-1px;}
+.hs-v em{font-style:normal;color:var(--or);}
+.hs-l{font-size:11px;color:var(--lgrey);margin-top:3px;letter-spacing:0.5px;}
+
+/* Décoration fond */
+.hero-bg{
+  position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(201,168,76,0.04) 0%, transparent 50%);
 }
-.lf{width:100%;}
-.lf-head{margin-bottom:32px;}
-.lf-head h2{font-size:22px;font-weight:800;color:#111;letter-spacing:-0.5px;margin-bottom:4px;}
-.lf-head p{font-size:13px;color:#999;}
-.lf-field{margin-bottom:14px;}
-.lf-field label{
-  display:block;font-size:11px;font-weight:600;color:#777;
-  margin-bottom:6px;letter-spacing:0.3px;text-transform:uppercase;
-  font-family:'DM Mono',monospace;
+.hero>*{position:relative;z-index:1;}
+
+/* ── APP MOCKUP ── */
+.mockup-section{
+  padding:0 40px 100px;
+  display:flex;justify-content:center;
 }
-.lf-field input{
-  width:100%;background:#F7F6F2;border:1.5px solid #E8E4DB;
-  padding:12px 14px;font-family:'Syne',sans-serif;
-  font-size:13px;color:#111;outline:none;border-radius:var(--radius);
-  transition:border .15s,background .15s;
+.mockup{
+  background:#fff;border:1.5px solid var(--br);border-radius:12px;
+  overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,0.1);
+  max-width:1000px;width:100%;
 }
-.lf-field input:focus{border-color:var(--or);background:#fff;}
-.lf-field input::placeholder{color:#BBB;}
-.lf-forgot{text-align:right;font-size:11px;color:#999;cursor:pointer;margin:-6px 0 16px;}
-.lf-forgot:hover{color:var(--or);}
-.lf-btn{
-  width:100%;padding:13px;background:var(--or);
-  color:#fff;border:none;font-family:'Syne',sans-serif;
-  font-weight:700;font-size:13px;cursor:pointer;
-  border-radius:var(--radius);letter-spacing:0.3px;
-  transition:background .15s;
+.mockup-topbar{
+  background:var(--bg);border-bottom:1px solid var(--br);
+  padding:10px 16px;display:flex;align-items:center;gap:8px;
 }
-.lf-btn:hover{background:var(--or2);}
-.lf-sep{
-  display:flex;align-items:center;gap:12px;
-  margin:14px 0;font-size:11px;color:#CCC;letter-spacing:1px;
+.mockup-dot{width:10px;height:10px;border-radius:50%;}
+.mockup-url{
+  flex:1;background:#fff;border:1px solid var(--br);
+  border-radius:100px;padding:4px 12px;
+  font-size:11px;color:var(--lgrey);font-family:'DM Mono',monospace;
+  text-align:center;
 }
-.lf-sep::before,.lf-sep::after{content:'';flex:1;height:1px;background:#EEE;}
-.lf-ghost{
-  width:100%;padding:12px;background:#fff;
-  border:1.5px solid #E8E4DB;color:#555;
-  font-family:'Syne',sans-serif;font-size:13px;cursor:pointer;
-  border-radius:var(--radius);transition:all .15s;font-weight:500;
+.mockup-body{display:flex;}
+.mockup-sidebar{width:180px;border-right:1px solid var(--br);padding:14px 10px;background:var(--white);}
+.ms-item{padding:7px 10px;border-radius:4px;font-size:11px;color:var(--grey);margin-bottom:2px;font-weight:500;}
+.ms-item.on{background:rgba(201,168,76,0.1);color:var(--or);font-weight:700;}
+.mockup-content{flex:1;padding:18px;}
+.mc-title{font-size:14px;font-weight:800;color:var(--dark);margin-bottom:12px;}
+.mc-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.mc-kpi{background:var(--bg);border:1px solid var(--br);border-radius:4px;padding:10px 12px;}
+.mc-kpi-l{font-size:8px;color:var(--lgrey);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;font-family:'DM Mono',monospace;}
+.mc-kpi-v{font-size:18px;font-weight:700;color:var(--dark);font-family:'DM Mono',monospace;letter-spacing:-0.5px;}
+.mc-kpi-d{font-size:9px;color:#1A8C4E;margin-top:2px;font-weight:600;}
+.mc-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.mc-card{background:var(--bg);border:1px solid var(--br);border-radius:6px;overflow:hidden;}
+.mc-card-img{height:70px;background:linear-gradient(135deg,#E8E4DB,#D4D0C8);display:flex;align-items:center;justify-content:center;font-size:24px;}
+.mc-card-body{padding:8px;}
+.mc-card-title{font-size:10px;font-weight:700;color:var(--dark);margin-bottom:3px;}
+.mc-card-meta{font-size:8px;color:var(--lgrey);font-family:'DM Mono',monospace;margin-bottom:6px;}
+.mc-card-prix{font-size:13px;font-weight:800;color:var(--dark);font-family:'DM Mono',monospace;letter-spacing:-0.3px;margin-bottom:6px;}
+.mc-card-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;}
+.mc-stat{background:#fff;border-radius:3px;padding:4px;text-align:center;}
+.mc-stat-v{font-size:9px;font-weight:700;font-family:'DM Mono',monospace;}
+.mc-stat-l{font-size:7px;color:var(--lgrey);}
+
+/* ── FEATURES ── */
+.features{padding:100px 40px;background:#fff;}
+.section-label{font-size:10px;font-weight:700;color:var(--or);letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:14px;font-family:'DM Mono',monospace;}
+.section-title{font-size:clamp(32px,4vw,48px);font-weight:800;color:var(--dark);letter-spacing:-2px;text-align:center;margin-bottom:14px;line-height:1.1;}
+.section-sub{font-size:16px;color:var(--grey);text-align:center;max-width:500px;margin:0 auto 56px;line-height:1.6;}
+
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto;}
+.feat-card{background:var(--bg);border:1.5px solid var(--br);border-radius:8px;padding:28px;}
+.feat-ico{font-size:28px;margin-bottom:14px;}
+.feat-title{font-size:16px;font-weight:800;color:var(--dark);margin-bottom:8px;letter-spacing:-0.3px;}
+.feat-desc{font-size:13px;color:var(--grey);line-height:1.6;}
+
+/* ── AVANT / APRES ── */
+.avap{padding:100px 40px;background:var(--bg);}
+.avap-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px;margin:0 auto;}
+.avap-card{background:#fff;border:1.5px solid var(--br);border-radius:8px;padding:28px;}
+.avap-card.after{border-color:var(--or);background:rgba(201,168,76,0.03);}
+.avap-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;font-family:'DM Mono',monospace;}
+.avap-label.before{color:#C0392B;}
+.avap-label.after{color:var(--or);}
+.avap-step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;}
+.avap-num{width:20px;height:20px;border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.avap-num.b{background:rgba(192,57,43,0.1);color:#C0392B;}
+.avap-num.a{background:rgba(201,168,76,0.15);color:var(--or);}
+.avap-text{font-size:13px;color:var(--grey);line-height:1.4;}
+.avap-time{margin-top:16px;padding:10px 14px;border-radius:6px;font-size:13px;font-weight:700;text-align:center;}
+.avap-time.b{background:rgba(192,57,43,0.06);color:#C0392B;}
+.avap-time.a{background:rgba(201,168,76,0.1);color:var(--or);}
+
+/* ── PRICING ── */
+.pricing{padding:100px 40px;background:#fff;}
+.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:760px;margin:0 auto;}
+.price-card{border:1.5px solid var(--br);border-radius:10px;padding:32px;position:relative;background:var(--bg);}
+.price-card.featured{border-color:var(--or);background:#fff;box-shadow:0 20px 60px rgba(201,168,76,0.12);}
+.price-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--or);color:#fff;font-size:10px;font-weight:700;padding:4px 14px;border-radius:100px;letter-spacing:1px;white-space:nowrap;}
+.price-plan{font-size:13px;font-weight:700;color:var(--grey);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;}
+.price-amount{font-size:48px;font-weight:800;color:var(--dark);letter-spacing:-2px;font-family:'DM Mono',monospace;line-height:1;}
+.price-amount span{font-size:16px;font-weight:500;color:var(--lgrey);letter-spacing:0;}
+.price-desc{font-size:13px;color:var(--grey);margin:10px 0 20px;line-height:1.5;}
+.price-features{list-style:none;margin-bottom:24px;}
+.price-features li{font-size:13px;color:var(--grey);padding:6px 0;border-bottom:1px solid var(--br);display:flex;gap:8px;align-items:center;}
+.price-features li:last-child{border:none;}
+.price-features li::before{content:'✓';color:var(--or);font-weight:700;flex-shrink:0;}
+.btn-price{display:block;width:100%;padding:13px;text-align:center;border-radius:100px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;text-decoration:none;}
+.btn-price-dark{background:var(--dark);color:#fff;border:none;}
+.btn-price-dark:hover{background:#333;}
+.btn-price-or{background:var(--or);color:#fff;border:none;}
+.btn-price-or:hover{background:var(--or2);}
+
+/* ── FAQ ── */
+.faq{padding:100px 40px;background:var(--bg);}
+.faq-list{max-width:700px;margin:0 auto;}
+.faq-item{border-bottom:1px solid var(--br);padding:20px 0;cursor:pointer;}
+.faq-q{font-size:15px;font-weight:700;color:var(--dark);display:flex;justify-content:space-between;align-items:center;}
+.faq-q span{color:var(--or);font-size:18px;transition:transform .2s;}
+.faq-a{font-size:13px;color:var(--grey);line-height:1.7;margin-top:12px;display:none;}
+.faq-item.open .faq-a{display:block;}
+.faq-item.open .faq-q span{transform:rotate(45deg);}
+
+/* ── CTA FINAL ── */
+.cta-final{
+  padding:100px 40px;background:var(--dark);
+  text-align:center;
 }
-.lf-ghost:hover{border-color:var(--or);color:var(--or);}
-.lf-foot{margin-top:20px;font-size:11px;color:#999;text-align:center;}
-.lf-foot a{color:var(--or);cursor:pointer;font-weight:600;}
-.lf-foot a:hover{text-decoration:underline;}
+.cta-final h2{font-size:clamp(36px,5vw,60px);font-weight:800;color:#fff;letter-spacing:-2px;margin-bottom:16px;line-height:1.1;}
+.cta-final h2 em{font-style:normal;color:var(--or);}
+.cta-final p{font-size:16px;color:rgba(255,255,255,0.5);margin-bottom:36px;}
+.btn-cta-final{padding:16px 40px;background:var(--or);color:#fff;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;border-radius:100px;border:none;cursor:pointer;transition:background .15s;text-decoration:none;display:inline-block;}
+.btn-cta-final:hover{background:var(--or2);}
+
+/* ── FOOTER ── */
+footer{background:var(--dark);border-top:1px solid rgba(255,255,255,0.05);padding:40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+.footer-logo{display:flex;align-items:center;gap:8px;}
+.footer-logo-name{font-size:14px;font-weight:800;color:#fff;}
+.footer-links{display:flex;gap:20px;}
+.footer-link{font-size:12px;color:rgba(255,255,255,0.4);text-decoration:none;transition:color .1s;}
+.footer-link:hover{color:#fff;}
+.footer-copy{font-size:11px;color:rgba(255,255,255,0.25);font-family:'DM Mono',monospace;}
+
+/* ── MODAL INSCRIPTION ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+.modal-bg.on{display:flex;}
+.modal{background:#fff;border-radius:12px;padding:36px;width:420px;box-shadow:0 40px 100px rgba(0,0,0,0.2);}
+.modal-logo{display:flex;align-items:center;gap:8px;margin-bottom:24px;}
+.modal-logo-name{font-size:15px;font-weight:800;color:var(--dark);}
+.modal h3{font-size:22px;font-weight:800;color:var(--dark);letter-spacing:-0.5px;margin-bottom:4px;}
+.modal p{font-size:13px;color:var(--grey);margin-bottom:24px;line-height:1.5;}
+.modal-field{margin-bottom:14px;}
+.modal-field label{display:block;font-size:10px;font-weight:700;color:var(--grey);margin-bottom:5px;letter-spacing:0.5px;text-transform:uppercase;font-family:'DM Mono',monospace;}
+.modal-field input{width:100%;background:var(--bg);border:1.5px solid var(--br);padding:11px 14px;font-family:'Syne',sans-serif;font-size:13px;color:var(--dark);outline:none;border-radius:8px;transition:border .15s;}
+.modal-field input:focus{border-color:var(--or);background:#fff;}
+.modal-field input::placeholder{color:#CCC;}
+.modal-btn{width:100%;padding:13px;background:var(--or);color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;border:none;border-radius:100px;cursor:pointer;transition:background .15s;margin-top:4px;}
+.modal-btn:hover{background:var(--or2);}
+.modal-sep{display:flex;align-items:center;gap:10px;margin:14px 0;font-size:11px;color:#CCC;}
+.modal-sep::before,.modal-sep::after{content:'';flex:1;height:1px;background:var(--br);}
+.modal-login{text-align:center;font-size:12px;color:var(--grey);}
+.modal-login a{color:var(--or);cursor:pointer;font-weight:600;}
+.modal-close{float:right;background:none;border:none;cursor:pointer;color:var(--lgrey);font-size:20px;margin-top:-4px;}
+
+@media(max-width:768px){
+  .features-grid{grid-template-columns:1fr;}
+  .pricing-grid{grid-template-columns:1fr;}
+  .avap-grid{grid-template-columns:1fr;}
+  .mockup-sidebar{display:none;}
+  .mc-cards{grid-template-columns:1fr 1fr;}
+  nav .nav-links{display:none;}
+}
 </style>
 </head>
 <body>
 
-<div class="toast" id="toast"></div>
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <svg width="22" height="22" viewBox="0 0 64 64" fill="none"><path d="M32 4L60 32L32 60L4 32L32 4Z" stroke="#C9A84C" stroke-width="1.5" fill="none"/><path d="M32 10L54 32L32 54L10 32L32 10Z" stroke="#C9A84C" stroke-width="0.4" stroke-opacity="0.3" fill="none"/><path d="M18 21H29C32.866 21 36 24.134 36 28C36 31.866 32.866 35 29 35H23V43H18V21Z" stroke="#111" stroke-width="1.8" fill="none" stroke-linejoin="round"/><line x1="23" y1="21" x2="23" y2="35" stroke="#111" stroke-width="1.8"/><path d="M39 25C39 23.34 40.34 22 42 22C43.66 22 45 23.34 45 25C45 26.4 44 27.4 42.3 28.2C40.6 29 39.5 30.2 39.5 31.6C39.5 33.36 40.94 34.8 42.7 34.8C44.46 34.8 45.9 33.36 45.9 31.6" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+    <div class="nav-logo-name">PropScan</div>
+  </div>
+  <div class="nav-links">
+    <a href="#features" class="nav-link">Fonctionnalités</a>
+    <a href="#pricing" class="nav-link">Tarifs</a>
+    <a href="#faq" class="nav-link">FAQ</a>
+  </div>
+  <div class="nav-actions">
+    <a href="app.html" class="btn-login">Se connecter</a>
+    <a href="#" class="btn-cta" onclick="openModal()">Essai gratuit →</a>
+  </div>
+</nav>
 
-<!-- ══ LOGIN ══ -->
-<div id="login">
-  <div class="ll">
-    <div class="ll-bg-deco"></div>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-badge"><div class="hero-badge-dot"></div>L'outil n°1 des investisseurs immobiliers actifs</div>
+  <h1 class="hero-h1">Analysez. Décidez.<br><em>Signez.</em></h1>
+  <p class="hero-sub">Toutes les annonces centralisées, rentabilité calculée automatiquement, dossiers PDF professionnels en 2 clics.</p>
+  <div class="hero-actions">
+    <a href="#" class="btn-hero-or" onclick="openModal()">Commencer gratuitement →</a>
+    <a href="#features" class="btn-hero-ghost">Voir les fonctionnalités</a>
+  </div>
+  <div class="hero-stats">
+    <div class="hs"><div class="hs-v">1500<em>+</em></div><div class="hs-l">Sites agrégés</div></div>
+    <div class="hs"><div class="hs-v">3 <em>min</em></div><div class="hs-l">Par analyse</div></div>
+    <div class="hs"><div class="hs-v">DVF</div><div class="hs-l">Données officielles</div></div>
+    <div class="hs"><div class="hs-v">0 <em>€</em></div><div class="hs-l">Pour commencer</div></div>
+  </div>
+</section>
 
-    <!-- Logo -->
-    <div class="ll-logo">
-      <svg width="26" height="26" viewBox="0 0 64 64" fill="none">
-        <path d="M32 4L60 32L32 60L4 32L32 4Z" stroke="#C9A84C" stroke-width="1.5" fill="none"/>
-        <path d="M32 10L54 32L32 54L10 32L32 10Z" stroke="#C9A84C" stroke-width="0.4" stroke-opacity="0.3" fill="none"/>
-        <path d="M18 21H29C32.866 21 36 24.134 36 28C36 31.866 32.866 35 29 35H23V43H18V21Z" stroke="#111" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
-        <line x1="23" y1="21" x2="23" y2="35" stroke="#111" stroke-width="1.8"/>
-        <path d="M39 25C39 23.3431 40.3431 22 42 22C43.6569 22 45 23.3431 45 25C45 26.4 44 27.4 42.3 28.2C40.6 29 39.5 30.2 39.5 31.6C39.5 33.3569 40.9431 34.8 42.7 34.8C44.4569 34.8 45.9 33.3569 45.9 31.6" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-      </svg>
-      <div class="ll-lname">PropScan</div>
+<!-- APP MOCKUP -->
+<section class="mockup-section">
+  <div class="mockup">
+    <div class="mockup-topbar">
+      <div class="mockup-dot" style="background:#FF5F57;"></div>
+      <div class="mockup-dot" style="background:#FFBD2E;"></div>
+      <div class="mockup-dot" style="background:#28C840;"></div>
+      <div class="mockup-url">propscan.fr</div>
     </div>
-
-    <!-- Centre -->
-    <div class="ll-center">
-      <div class="ll-h1">L'outil des<br>investisseurs<br><em>immobiliers.</em></div>
-      <div class="ll-p">Centralisez toutes vos annonces, calculez la rentabilité automatiquement et générez vos dossiers professionnels en 2 clics.</div>
-      <div class="ll-chips">
-        <div class="ll-chip"><div class="ll-chip-dot"></div>1 500+ sites agrégés</div>
-        <div class="ll-chip"><div class="ll-chip-dot"></div>DVF officiel intégré</div>
-        <div class="ll-chip"><div class="ll-chip-dot"></div>PDF pro en 2 clics</div>
-        <div class="ll-chip"><div class="ll-chip-dot"></div>Dossier bancaire complet</div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="ms-item on">▣ Dashboard</div>
+        <div class="ms-item">◎ Annonces</div>
+        <div class="ms-item">◈ Simulateur</div>
+        <div class="ms-item">◻ Dossier PDF</div>
+        <div class="ms-item">◉ DVF</div>
+        <div class="ms-item">◌ Alertes</div>
       </div>
-    </div>
-
-    <!-- Stats bas -->
-    <div class="ll-stats">
-      <div class="ls">
-        <div class="ls-v">3 <em>min</em></div>
-        <div class="ls-l">Par analyse de bien</div>
-      </div>
-      <div class="ls">
-        <div class="ls-v">100<em>%</em></div>
-        <div class="ls-l">En ligne, PC uniquement</div>
-      </div>
-      <div class="ls">
-        <div class="ls-v">0 <em>€</em></div>
-        <div class="ls-l">1 mois offert sans CB</div>
+      <div class="mockup-content">
+        <div class="mc-title">Meilleures opportunités du jour</div>
+        <div class="mc-kpis">
+          <div class="mc-kpi"><div class="mc-kpi-l">Annonces</div><div class="mc-kpi-v">247</div><div class="mc-kpi-d">↑ 8 aujourd'hui</div></div>
+          <div class="mc-kpi"><div class="mc-kpi-l">Opportunités</div><div class="mc-kpi-v">12</div><div class="mc-kpi-d">↑ 3 cette semaine</div></div>
+          <div class="mc-kpi"><div class="mc-kpi-l">Renta. moy.</div><div class="mc-kpi-v">8,4%</div><div class="mc-kpi-d" style="color:var(--or);">Bon marché</div></div>
+          <div class="mc-kpi"><div class="mc-kpi-l">Dossiers PDF</div><div class="mc-kpi-v">8</div><div class="mc-kpi-d" style="color:var(--lgrey);">Ce mois</div></div>
+        </div>
+        <div class="mc-cards">
+          <div class="mc-card"><div class="mc-card-img">🏢</div><div class="mc-card-body"><div class="mc-card-title">Immeuble — Toulouse</div><div class="mc-card-meta">180 m² · PAP · Part.</div><div class="mc-card-prix">320 000 €</div><div class="mc-card-stats"><div class="mc-stat"><div class="mc-stat-v" style="color:var(--or);">9.3%</div><div class="mc-stat-l">Renta</div></div><div class="mc-stat"><div class="mc-stat-v" style="color:#1A8C4E;">+680€</div><div class="mc-stat-l">Cash</div></div><div class="mc-stat"><div class="mc-stat-v" style="color:var(--or);">9.1/10</div><div class="mc-stat-l">Score</div></div></div></div></div>
+          <div class="mc-card"><div class="mc-card-img">🌅</div><div class="mc-card-body"><div class="mc-card-title">T2 Vue mer — Marseille</div><div class="mc-card-meta">36 m² · SeLoger · Part.</div><div class="mc-card-prix">59 999 €</div><div class="mc-card-stats"><div class="mc-stat"><div class="mc-stat-v" style="color:var(--or);">8.4%</div><div class="mc-stat-l">Renta</div></div><div class="mc-stat"><div class="mc-stat-v" style="color:#1A8C4E;">+187€</div><div class="mc-stat-l">Cash</div></div><div class="mc-stat"><div class="mc-stat-v" style="color:var(--or);">8.6/10</div><div class="mc-stat-l">Score</div></div></div></div></div>
+          <div class="mc-card"><div class="mc-card-img">🏠</div><div class="mc-card-body"><div class="mc-card-title">Studio — Lyon 7e</div><div class="mc-card-meta">28 m² · LeBonCoin</div><div class="mc-card-prix">89 000 €</div><div class="mc-card-stats"><div class="mc-stat"><div class="mc-stat-v" style="color:var(--or);">7.1%</div><div class="mc-stat-l">Renta</div></div><div class="mc-stat"><div class="mc-stat-v" style="color:#1A8C4E;">+124€</div><div class="mc-stat-l">Cash</div></div><div class="mc-stat"><div class="mc-stat-v" style="color:var(--or);">7.9/10</div><div class="mc-stat-l">Score</div></div></div></div></div>
+        </div>
       </div>
     </div>
   </div>
+</section>
 
-  <!-- Formulaire -->
-  <div class="lr">
-    <div class="lf">
-      <div class="lf-head">
-        <h2>Connexion</h2>
-        <p>Accédez à votre espace PropScan</p>
-      </div>
-      <div class="lf-field"><label>Email</label><input type="email" id="login-email" placeholder="vous@email.com"></div>
-      <div class="lf-field"><label>Mot de passe</label><input type="password" placeholder="••••••••"></div>
-      <div class="lf-forgot">Mot de passe oublié ?</div>
-      <button class="lf-btn" onclick="doLogin()">Se connecter →</button>
-      <div class="lf-sep">ou</div>
-      <button class="lf-ghost" onclick="doLogin()">Accéder à la démo gratuite</button>
-      <div class="lf-foot">Pas de compte ? <a onclick="doLogin()">Essai gratuit 1 mois →</a></div>
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-label">Fonctionnalités</div>
+  <h2 class="section-title">Tout ce dont vous avez besoin</h2>
+  <p class="section-sub">PropScan centralise tous vos outils d'investisseur en une seule application.</p>
+  <div class="features-grid">
+    <div class="feat-card"><div class="feat-ico">🔍</div><div class="feat-title">Annonces centralisées</div><div class="feat-desc">LeBonCoin, SeLoger, PAP, BienIci et 1 500+ sites agrégés automatiquement. Toutes les opportunités en un seul endroit.</div></div>
+    <div class="feat-card"><div class="feat-ico">📊</div><div class="feat-title">Rentabilité automatique</div><div class="feat-desc">Rentabilité brute, nette, cashflow et mensualité calculés instantanément. Comparé aux données DVF officielles.</div></div>
+    <div class="feat-card"><div class="feat-ico">📄</div><div class="feat-title">PDF professionnel</div><div class="feat-desc">Générez votre dossier client avec votre logo en 2 clics. Style professionnel, prêt à envoyer à votre banquier.</div></div>
+    <div class="feat-card"><div class="feat-ico">🏦</div><div class="feat-title">Dossier bancaire</div><div class="feat-desc">4 sections complètes conformes aux banques françaises. Plan de financement, revenus, profil emprunteur.</div></div>
+    <div class="feat-card"><div class="feat-ico">🔔</div><div class="feat-title">Alertes automatiques</div><div class="feat-desc">Configurez vos critères et recevez une alerte dès qu'un bien correspond. Ne ratez plus jamais une opportunité.</div></div>
+    <div class="feat-card"><div class="feat-ico">🔗</div><div class="feat-title">Partage client</div><div class="feat-desc">Partagez un dossier avec votre client par lien. Il consulte sans s'inscrire. Professionnel et rapide.</div></div>
+  </div>
+</section>
+
+<!-- AVANT / APRÈS -->
+<section class="avap">
+  <div class="section-label">Avant / Après</div>
+  <h2 class="section-title">47 minutes → 3 minutes</h2>
+  <p class="section-sub">Le temps que vous perdez sur chaque bien analysé sans PropScan.</p>
+  <div class="avap-grid">
+    <div class="avap-card">
+      <div class="avap-label before">Sans PropScan</div>
+      <div class="avap-step"><div class="avap-num b">1</div><div class="avap-text">Ouvrir LeBonCoin, SeLoger, PAP, BienIci un par un</div></div>
+      <div class="avap-step"><div class="avap-num b">2</div><div class="avap-text">Chercher les prix DVF sur data.gouv.fr</div></div>
+      <div class="avap-step"><div class="avap-num b">3</div><div class="avap-text">Calculer la rentabilité sur Excel</div></div>
+      <div class="avap-step"><div class="avap-num b">4</div><div class="avap-text">Créer le dossier PDF sur Canva</div></div>
+      <div class="avap-step"><div class="avap-num b">5</div><div class="avap-text">Monter le dossier bancaire depuis zéro</div></div>
+      <div class="avap-time b">⏱ ~47 minutes par bien</div>
+    </div>
+    <div class="avap-card after">
+      <div class="avap-label after">Avec PropScan</div>
+      <div class="avap-step"><div class="avap-num a">1</div><div class="avap-text">Toutes les annonces centralisées automatiquement</div></div>
+      <div class="avap-step"><div class="avap-num a">2</div><div class="avap-text">DVF comparé et rentabilité calculée en 1 clic</div></div>
+      <div class="avap-step"><div class="avap-num a">3</div><div class="avap-text">Cashflow, crédit et travaux simulés en temps réel</div></div>
+      <div class="avap-step"><div class="avap-num a">4</div><div class="avap-text">PDF professionnel avec votre logo généré automatiquement</div></div>
+      <div class="avap-step"><div class="avap-num a">5</div><div class="avap-text">Dossier bancaire complet prêt à envoyer</div></div>
+      <div class="avap-time a">⚡ ~3 minutes par bien</div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- ══ APP ══ -->
-<div id="app" style="display:none;flex-direction:column;">
-
-  <!-- TOPBAR -->
-  <div class="topbar">
-    <div class="tb-logo" onclick="nav('dashboard')">
-      <svg width="20" height="20" viewBox="0 0 64 64" fill="none"><path d="M32 4L60 32L32 60L4 32L32 4Z" stroke="#C9A84C" stroke-width="1.5" fill="none"/><path d="M32 10L54 32L32 54L10 32L32 10Z" stroke="#C9A84C" stroke-width="0.4" stroke-opacity="0.3" fill="none"/></svg>
-      <div class="tb-lname">PropScan</div>
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="section-label">Tarifs</div>
+  <h2 class="section-title">Simple et transparent</h2>
+  <p class="section-sub">Commencez gratuitement. Passez au plan payant quand vous êtes prêt.</p>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="price-plan">Essentiel</div>
+      <div class="price-amount">29€<span>/mois</span></div>
+      <div class="price-desc">Idéal pour débuter et analyser vos premiers biens.</div>
+      <ul class="price-features">
+        <li>6 analyses de biens par mois</li>
+        <li>Annonces agrégées automatiquement</li>
+        <li>Simulateur rentabilité & cashflow</li>
+        <li>Génération PDF professionnel</li>
+        <li>Données DVF intégrées</li>
+      </ul>
+      <a href="https://buy.stripe.com/8x29AM9cc0l21eL00x3ZK00" target="_blank" class="btn-price btn-price-dark">S'abonner →</a>
     </div>
-    <input class="tb-search" type="text" placeholder="Rechercher un bien, une ville...">
-    <div class="tb-right">
-      <button class="btn-ghost" onclick="openImport()">+ Importer une annonce</button>
-      <button class="btn-or" onclick="nav('pdf')">+ Créer un dossier</button>
-      <div class="tb-notif">🔔<div class="tb-notif-dot"></div></div>
-      <div class="tb-user" onclick="nav('params')">
-        <div class="tb-av" id="tb-av">JD</div>
-        <div class="tb-uname" id="tb-uname">Jean Dupont</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MAIN -->
-  <div class="main">
-
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-      <div class="sb-section">Navigation</div>
-      <div class="sb-item on" id="sb-dashboard" onclick="nav('dashboard')"><span class="ico">▣</span> Dashboard</div>
-      <div class="sb-item" id="sb-annonces" onclick="nav('annonces')"><span class="ico">◎</span> Annonces <span class="sb-badge or">12</span></div>
-      <div class="sb-item" id="sb-import" onclick="openImport()"><span class="ico">⊕</span> Importer</div>
-      <div class="sb-section">Outils</div>
-      <div class="sb-item" id="sb-simulateur" onclick="nav('simulateur')"><span class="ico">◈</span> Simulateur</div>
-      <div class="sb-item" id="sb-pdf" onclick="nav('pdf')"><span class="ico">◻</span> Dossier PDF</div>
-      <div class="sb-item" id="sb-banque" onclick="nav('banque')"><span class="ico">◇</span> Dossier bancaire</div>
-      <div class="sb-item" id="sb-dvf" onclick="nav('dvf')"><span class="ico">◉</span> DVF</div>
-      <div class="sb-section">Gestion</div>
-      <div class="sb-item" id="sb-partage" onclick="nav('partage')"><span class="ico">◁</span> Partage</div>
-      <div class="sb-item" id="sb-alertes" onclick="nav('alertes')"><span class="ico">◌</span> Alertes <span class="sb-badge red">3</span></div>
-      <div class="sb-item" id="sb-params" onclick="nav('params')"><span class="ico">⚙</span> Paramètres</div>
-      <div class="sb-footer">
-        <div class="sb-plan">
-          <div class="sb-plan-title">Plan Pro</div>
-          <div class="sb-plan-sub">99€/mois · Fondateur</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CONTENT -->
-    <div class="content">
-
-      <!-- ── DASHBOARD ── -->
-      <div class="page on" id="pg-dashboard">
-        <div class="pg-head">
-          <div>
-            <div class="pg-title" id="greeting">Bonjour, Jean.</div>
-            <div class="pg-sub">3 nouvelles opportunités depuis hier · Marseille, Lyon, Toulouse</div>
-          </div>
-        </div>
-        <div class="kpi-grid">
-          <div class="kpi"><div class="kpi-label">Annonces suivies</div><div class="kpi-val" id="kpi-annonces">247</div><div class="kpi-delta up">↑ 8 aujourd'hui</div></div>
-          <div class="kpi"><div class="kpi-label">Opportunités</div><div class="kpi-val" id="kpi-opportunites">12</div><div class="kpi-delta up">↑ 3 cette semaine</div></div>
-          <div class="kpi"><div class="kpi-label">Dossiers créés</div><div class="kpi-val">8</div><div class="kpi-delta neu">Stable</div></div>
-          <div class="kpi"><div class="kpi-label">Renta. moyenne</div><div class="kpi-val" id="kpi-renta">8,4%</div><div class="kpi-delta up">↑ bon marché</div></div>
-        </div>
-        <div class="g-1-2">
-          <div>
-            <div class="card">
-              <div class="card-head"><div class="card-title">Meilleures opportunités</div><div class="card-action" onclick="nav('annonces')">Tout voir →</div></div>
-              <div id="dashboard-opportunites">
-              <div class="row-item" onclick="prefillFromDashboard(320000,180,'Immeuble Toulouse');nav('pdf')">
-                <div class="ri-ico">🏢</div>
-                <div style="flex:1;min-width:0;"><div class="ri-main">Immeuble 4 lots — Toulouse</div><div class="ri-sub">180 m² · PAP · Part · 2 jours</div></div>
-                <div style="text-align:right"><div class="ri-val" style="color:var(--or);">320 000 €</div><div style="font-size:10px;color:var(--green);font-family:'DM Mono',monospace;">9,3% · 9.1/10</div></div>
-              </div>
-              <div class="row-item" onclick="prefillFromDashboard(59999,36,'T2 Vue mer Marseille');nav('pdf')">
-                <div class="ri-ico">🌅</div>
-                <div style="flex:1;min-width:0;"><div class="ri-main">T2 Vue mer — Marseille 13003</div><div class="ri-sub">36 m² · SeLoger · Aujourd'hui</div></div>
-                <div style="text-align:right"><div class="ri-val" style="color:var(--or);">59 999 €</div><div style="font-size:10px;color:var(--green);font-family:'DM Mono',monospace;">8,4% · 8.6/10</div></div>
-              </div>
-              <div class="row-item" onclick="prefillFromDashboard(89000,28,'Studio Lyon 7e');nav('pdf')">
-                <div class="ri-ico">🏠</div>
-                <div style="flex:1;min-width:0;"><div class="ri-main">Studio rénové — Lyon 7e</div><div class="ri-sub">28 m² · LeBonCoin · Hier</div></div>
-                <div style="text-align:right"><div class="ri-val" style="color:var(--or);">89 000 €</div><div style="font-size:10px;color:var(--green);font-family:'DM Mono',monospace;">7,1% · 7.9/10</div></div>
-              </div>
-              <div class="row-item" onclick="prefillFromDashboard(198000,110,'Maison Montpellier');nav('pdf')">
-                <div class="ri-ico">🏘️</div>
-                <div style="flex:1;min-width:0;"><div class="ri-main">Maison T4 — Montpellier</div><div class="ri-sub">110 m² · SeLoger · 3 jours</div></div>
-                <div style="text-align:right"><div class="ri-val" style="color:var(--or);">198 000 €</div><div style="font-size:10px;color:var(--green);font-family:'DM Mono',monospace;">8,1% · 8.1/10</div></div>
-              </div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-head"><div class="card-title">Activité récente</div></div>
-              <div style="padding:0 14px;">
-                <div class="act-row"><div class="act-bar or"></div><div><div class="act-text">Analyse générée — T2 Marseille 13003</div><div class="act-time">Il y a 35 min</div></div></div>
-                <div class="act-row"><div class="act-bar green"></div><div><div class="act-text">PDF créé et partagé au client</div><div class="act-time">Il y a 2h</div></div></div>
-                <div class="act-row"><div class="act-bar blue"></div><div><div class="act-text">Dossier bancaire envoyé à Pretto</div><div class="act-time">Hier 14:32</div></div></div>
-              </div>
-            </div>
-          </div>
-          <div>
-            <div class="card">
-              <div class="card-head"><div class="card-title">Alertes récentes</div><div class="card-action" onclick="nav('alertes')">Gérer →</div></div>
-              <div class="alert-item"><div class="ai-dot" style="background:var(--green)"></div><div class="ai-body"><div class="ai-title">Bien sous-évalué — Marseille</div><div class="ai-sub">−34% vs marché DVF</div></div><div class="ai-time">12 min</div></div>
-              <div class="alert-item"><div class="ai-dot" style="background:var(--or)"></div><div class="ai-body"><div class="ai-title">Baisse T3 Lyon 7e</div><div class="ai-sub">−8 000 € sur le prix</div></div><div class="ai-time">2h</div></div>
-              <div class="alert-item"><div class="ai-dot" style="background:var(--blue)"></div><div class="ai-body"><div class="ai-title">Dossier bancaire envoyé</div><div class="ai-sub">Réponse attendue</div></div><div class="ai-time">Hier</div></div>
-            </div>
-            <div class="card">
-              <div class="card-head"><div class="card-title">Indicateurs marché</div></div>
-              <div style="padding:0 14px;">
-                <div class="stat-row"><span class="sr-label">Taux d'opportunités</span><span class="sr-val or">4,9%</span></div>
-                <div class="stat-row"><span class="sr-label">Renta moyenne secteur</span><span class="sr-val green">8,4%</span></div>
-                <div class="stat-row"><span class="sr-label">Dossiers PDF générés</span><span class="sr-val">8</span></div>
-                <div class="stat-row"><span class="sr-label">Dossiers bancaires</span><span class="sr-val">3</span></div>
-                <div class="stat-row"><span class="sr-label">Alertes actives</span><span class="sr-val">2</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── ANNONCES ── -->
-      <div class="page" id="pg-annonces">
-        <div class="pg-head">
-          <div><div class="pg-title">Annonces</div><div class="pg-sub">247 annonces · 12 opportunités détectées · Mis à jour il y a 5 min</div></div>
-          <div class="pg-actions">
-            <button class="btn-ghost" onclick="openImport()">+ Importer un lien</button>
-            <button class="btn-or" onclick="nav('alertes')">+ Créer une alerte</button>
-          </div>
-        </div>
-        <!-- Import rapide dans la page -->
-        <div class="import-box" style="margin-bottom:14px;">
-          <div style="font-size:11px;color:var(--w3);margin-bottom:8px;font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;">⚡ Import rapide — coller un lien d'annonce</div>
-          <div class="import-row">
-            <input class="import-input" id="url-input-inline" type="url" placeholder="https://www.leboncoin.fr/ventes_immobilieres/... ou SeLoger, PAP, BienIci">
-            <button class="btn-or" onclick="importURL('inline')">Importer</button>
-          </div>
-          <div class="import-preview" id="import-preview-inline">
-            <img class="import-img" id="import-img-inline" src="">
-            <div class="import-info">
-              <div class="import-title" id="import-title-inline"></div>
-              <div class="import-meta" id="import-meta-inline"></div>
-              <div class="import-price" id="import-price-inline"></div>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px;justify-content:center;">
-              <button class="btn-sm-or" onclick="addToFavorites()">Ajouter aux favoris</button>
-              <button class="btn-sm" onclick="importToPDF()">→ Créer PDF</button>
-            </div>
-          </div>
-        </div>
-        <div class="filters">
-          <div class="filter on">Toutes</div>
-          <div class="filter">Opportunités</div>
-          <div class="filter">Particuliers</div>
-          <div class="filter">Pros</div>
-          <div class="filter">Baisses de prix</div>
-          <div class="filter">Nouvelles</div>
-        </div>
-        <div class="card">
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Bien</th><th>Prix</th><th>Rentabilité</th><th>Cashflow</th><th>vs DVF</th><th>Score</th><th>Source</th><th>Actions</th></tr></thead>
-              <tbody id="annonces-tbody">
-                <tr><td><div class="td-main">T2 Vue mer — Marseille 13003</div><div class="td-sub">36 m² · <span class="tag tag-part">PART</span> · Aujourd'hui</div></td><td class="td-price">59 999 €</td><td class="td-renta">8,4%</td><td class="td-cf">+187 €</td><td style="font-size:11px;color:var(--green);font-family:'DM Mono',monospace;">−32%</td><td class="td-score">8.6</td><td class="td-sub">SeLoger</td><td><div style="display:flex;gap:4px;"><button class="btn-sm-or" onclick="prefillFromDashboard(59999,36,'T2 Vue mer Marseille');nav('pdf')">PDF</button><button class="btn-sm" onclick="prefillBanque(59999,'T2 Vue mer Marseille');nav('banque')">Banque</button></div></td></tr>
-                <tr><td><div class="td-main">Immeuble 4 lots — Toulouse</div><div class="td-sub">180 m² · <span class="tag tag-part">PART</span> · 2 jours</div></td><td class="td-price">320 000 €</td><td class="td-renta">9,3%</td><td class="td-cf">+680 €</td><td style="font-size:11px;color:var(--green);font-family:'DM Mono',monospace;">−28%</td><td class="td-score">9.1</td><td class="td-sub">PAP</td><td><div style="display:flex;gap:4px;"><button class="btn-sm-or" onclick="prefillFromDashboard(320000,180,'Immeuble Toulouse');nav('pdf')">PDF</button><button class="btn-sm" onclick="prefillBanque(320000,'Immeuble Toulouse');nav('banque')">Banque</button></div></td></tr>
-                <tr><td><div class="td-main">Studio rénové — Lyon 7e</div><div class="td-sub">28 m² · <span class="tag tag-part">PART</span> · Hier</div></td><td class="td-price">89 000 €</td><td class="td-renta">7,1%</td><td class="td-cf">+124 €</td><td style="font-size:11px;color:var(--green);font-family:'DM Mono',monospace;">−18%</td><td class="td-score">7.9</td><td class="td-sub">LeBonCoin</td><td><div style="display:flex;gap:4px;"><button class="btn-sm-or" onclick="prefillFromDashboard(89000,28,'Studio Lyon 7e');nav('pdf')">PDF</button><button class="btn-sm" onclick="prefillBanque(89000,'Studio Lyon');nav('banque')">Banque</button></div></td></tr>
-                <tr><td><div class="td-main">T3 Hypercentre — Bordeaux</div><div class="td-sub">54 m² · <span class="tag tag-pro">PRO</span> · Hier</div></td><td class="td-price">142 000 €</td><td class="td-renta">6,8%</td><td class="td-cf">+89 €</td><td style="font-size:11px;color:var(--green);font-family:'DM Mono',monospace;">−12%</td><td class="td-score">7.4</td><td class="td-sub">SeLoger</td><td><div style="display:flex;gap:4px;"><button class="btn-sm-or" onclick="prefillFromDashboard(142000,54,'T3 Bordeaux');nav('pdf')">PDF</button><button class="btn-sm" onclick="prefillBanque(142000,'T3 Bordeaux');nav('banque')">Banque</button></div></td></tr>
-                <tr><td><div class="td-main">Maison T4 — Montpellier</div><div class="td-sub">110 m² · <span class="tag tag-pro">PRO</span> · 3 jours</div></td><td class="td-price">198 000 €</td><td class="td-renta">8,1%</td><td class="td-cf">+342 €</td><td style="font-size:11px;color:var(--green);font-family:'DM Mono',monospace;">−22%</td><td class="td-score">8.1</td><td class="td-sub">BienIci</td><td><div style="display:flex;gap:4px;"><button class="btn-sm-or" onclick="prefillFromDashboard(198000,110,'Maison Montpellier');nav('pdf')">PDF</button><button class="btn-sm" onclick="prefillBanque(198000,'Maison Montpellier');nav('banque')">Banque</button></div></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── SIMULATEUR ── -->
-      <div class="page" id="pg-simulateur">
-        <div class="pg-head"><div><div class="pg-title">Simulateur</div><div class="pg-sub">Calculez rentabilité, cashflow et crédit en temps réel</div></div></div>
-        <div class="g2">
-          <div>
-            <div class="form-section">
-              <div class="fs-title">Bien immobilier</div>
-              <div class="field"><label>Adresse</label><input id="sim-addr" type="text" value="18 rue Berlioz, Marseille 13006" oninput="calcSim()"></div>
-              <div class="f2">
-                <div class="field"><label>Prix d'achat (€)</label><input id="sim-px" type="number" value="849000" oninput="calcSim()"></div>
-                <div class="field"><label>Surface (m²)</label><input id="sim-su" type="number" value="300" oninput="calcSim()"></div>
-              </div>
-              <div class="f2">
-                <div class="field"><label>Loyers annuels (€)</label><input id="sim-lo" type="number" value="56724" oninput="calcSim()"></div>
-                <div class="field"><label>Travaux (€)</label><input id="sim-tr" type="number" value="0" oninput="calcSim()"></div>
-              </div>
-            </div>
-            <div class="form-section">
-              <div class="fs-title">Financement</div>
-              <div class="f3">
-                <div class="field"><label>Apport (€)</label><input id="sim-ap" type="number" value="100000" oninput="calcSim()"></div>
-                <div class="field"><label>Durée (ans)</label><input id="sim-du" type="number" value="20" oninput="calcSim()"></div>
-                <div class="field"><label>Taux (%)</label><input id="sim-tx" type="number" value="3.2" step="0.1" oninput="calcSim()"></div>
-              </div>
-              <div class="f2">
-                <div class="field"><label>Taxe foncière (€/an)</label><input id="sim-tf" type="number" value="6687" oninput="calcSim()"></div>
-                <div class="field"><label>Charges (€/an)</label><input id="sim-ch" type="number" value="2400" oninput="calcSim()"></div>
-              </div>
-            </div>
-          </div>
-          <div>
-            <div class="form-section">
-              <div class="fs-title">Résultats en temps réel</div>
-              <div class="result-box">
-                <div class="rb-title">Analyse financière complète</div>
-                <div class="rb-row"><span class="rb-label">Frais de notaire (8%)</span><span class="rb-val" id="sim-fn">67 920 €</span></div>
-                <div class="rb-row"><span class="rb-label">Coût total opération</span><span class="rb-val" id="sim-ct">916 920 €</span></div>
-                <div class="rb-row"><span class="rb-label">Montant emprunté</span><span class="rb-val" id="sim-em">816 920 €</span></div>
-                <div class="rb-row"><span class="rb-label">Mensualité crédit</span><span class="rb-val red" id="sim-men">−4 612 €</span></div>
-                <div class="rb-row"><span class="rb-label">Rentabilité brute</span><span class="rb-val or" id="sim-rb">6,68%</span></div>
-                <div class="rb-row"><span class="rb-label">Rentabilité nette</span><span class="rb-val or" id="sim-rn">5,48%</span></div>
-                <div class="rb-row"><span class="rb-label">Cashflow mensuel</span><span class="rb-val green" id="sim-cf">+484 €</span></div>
-                <div class="rb-row"><span class="rb-label">Prix au m²</span><span class="rb-val" id="sim-pm2">2 830 €/m²</span></div>
-              </div>
-              <div style="display:flex;gap:8px;margin-top:12px;">
-                <button class="btn-or" style="flex:1;" onclick="simToPDF()">→ Créer le dossier PDF</button>
-                <button class="btn-ghost" onclick="simToBanque()">→ Dossier bancaire</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── DOSSIER PDF ── -->
-      <div class="page" id="pg-pdf">
-        <div class="pg-head"><div><div class="pg-title">Dossier client PDF</div><div class="pg-sub">Générez un dossier professionnel avec votre logo en 2 clics</div></div></div>
-        <div class="g2">
-          <div>
-            <div class="form-section">
-              <div class="fs-title">Bien immobilier</div>
-              <div class="field"><label>Adresse</label><input id="pa" type="text" value="18 rue Berlioz, Marseille 13006" oninput="calcPDF()"></div>
-              <div class="f2">
-                <div class="field"><label>Type</label><select id="pty" onchange="calcPDF()"><option>Immeuble de rapport</option><option>Appartement</option><option>Maison</option><option>Studio</option><option>Local commercial</option></select></div>
-                <div class="field"><label>Surface (m²)</label><input id="psu" type="number" value="300" oninput="calcPDF()"></div>
-              </div>
-              <div class="f2">
-                <div class="field"><label>Prix d'achat (€)</label><input id="pp" type="number" value="849000" oninput="calcPDF()"></div>
-                <div class="field"><label>Nombre de lots</label><input id="pl" type="number" value="7" oninput="calcPDF()"></div>
-              </div>
-              <div class="f2">
-                <div class="field"><label>Ville</label><input id="pvi" type="text" value="Marseille 6e" oninput="updatePDFPreview()"></div>
-                <div class="field"><label>DPE</label><select id="pd"><option>D</option><option>A</option><option>B</option><option>C</option><option>E</option><option>F</option><option>G</option></select></div>
-              </div>
-            </div>
-            <div class="form-section">
-              <div class="fs-title">Données financières</div>
-              <div class="f2">
-                <div class="field"><label>Loyers annuels (€)</label><input id="plo" type="number" value="56724" oninput="calcPDF()"></div>
-                <div class="field"><label>Taxe foncière (€)</label><input id="ptf" type="number" value="6687" oninput="calcPDF()"></div>
-              </div>
-              <div class="f2">
-                <div class="field"><label>Charges (€/an)</label><input id="pch" type="number" value="2400" oninput="calcPDF()"></div>
-                <div class="field"><label>Travaux (€)</label><input id="ptr" type="number" value="0" oninput="calcPDF()"></div>
-              </div>
-              <div class="f3">
-                <div class="field"><label>Apport (€)</label><input id="pap" type="number" value="100000" oninput="calcPDF()"></div>
-                <div class="field"><label>Durée (ans)</label><input id="pdu" type="number" value="20" oninput="calcPDF()"></div>
-                <div class="field"><label>Taux (%)</label><input id="ptx" type="number" value="3.2" step="0.1" oninput="calcPDF()"></div>
-              </div>
-              <div class="result-box">
-                <div class="rb-title">Calculs automatiques</div>
-                <div class="rb-row"><span class="rb-label">Frais de notaire</span><span class="rb-val" id="r-fn">67 920 €</span></div>
-                <div class="rb-row"><span class="rb-label">Coût total</span><span class="rb-val" id="r-ct">916 920 €</span></div>
-                <div class="rb-row"><span class="rb-label">Rentabilité brute</span><span class="rb-val or" id="r-rb">6,68%</span></div>
-                <div class="rb-row"><span class="rb-label">Rentabilité nette</span><span class="rb-val or" id="r-rn">5,48%</span></div>
-                <div class="rb-row"><span class="rb-label">Mensualité crédit</span><span class="rb-val red" id="r-men">−4 612 €</span></div>
-                <div class="rb-row"><span class="rb-label">Cashflow mensuel</span><span class="rb-val green" id="r-cf">+484 €</span></div>
-              </div>
-            </div>
-            <div class="form-section">
-              <div class="fs-title">Personnalisation</div>
-              <div class="field"><label>Destinataire</label><input id="pde" type="text" placeholder="Nom du client" oninput="updatePDFPreview()"></div>
-              <div class="field"><label>Note d'introduction</label><textarea id="pno" style="min-height:50px;resize:vertical;" placeholder="Opportunité rare en centre-ville..." oninput="updatePDFPreview()"></textarea></div>
-              <div class="field"><label>Votre logo</label>
-                <div class="logo-drop"><input type="file" accept="image/*" onchange="uploadLogo(this,'pdf')"><img class="logo-preview" id="pdf-logo-preview" src=""><div id="pdf-logo-placeholder"><div class="logo-drop-text">↑ Cliquer pour uploader votre logo</div><div class="logo-drop-sub">PNG, JPG ou SVG · Apparaît sur tous vos dossiers</div></div></div>
-              </div>
-              <div class="f2">
-                <div class="field"><label>Couleur header</label><input id="pcol" type="color" value="#1A1A1A" onchange="updatePDFPreview()"></div>
-                <div class="field"><label>Nom de l'agence</label><input id="pag" type="text" placeholder="PropScan" oninput="updatePDFPreview()"></div>
-              </div>
-            </div>
-          </div>
-          <div>
-            <div class="form-section">
-              <div class="fs-title">Aperçu en temps réel</div>
-              <div class="pdf-preview" id="pdf-preview-container">
-                <div class="pdf-hd" id="pdf-hd-preview" style="background:#1A1A1A;">
-                  <div class="pdf-brand" id="pdf-preview-brand" style="color:#C9A84C;">PropScan</div>
-                  <div class="pdf-badge">Dossier d'investissement</div>
-                </div>
-                <div class="pdf-bd">
-                  <div class="pdf-prop-title" id="pdf-preview-title">Immeuble de rapport — Marseille 6e</div>
-                  <div class="pdf-prop-sub" id="pdf-preview-sub">18 rue Berlioz · 7 lots · 300 m² · DPE D</div>
-                  <div class="pdf-metrics">
-                    <div class="pdf-met"><div class="pdf-met-v" id="pdf-rb">6,7%</div><div class="pdf-met-l">Renta brute</div></div>
-                    <div class="pdf-met"><div class="pdf-met-v" id="pdf-rn">5,5%</div><div class="pdf-met-l">Renta nette</div></div>
-                    <div class="pdf-met"><div class="pdf-met-v" id="pdf-cf-prev">+484€</div><div class="pdf-met-l">Cashflow/mois</div></div>
-                    <div class="pdf-met"><div class="pdf-met-v">100%</div><div class="pdf-met-l">Occupation</div></div>
-                  </div>
-                  <table style="width:100%;border-collapse:collapse;">
-                    <tr><th style="font-size:7px;color:#aaa;padding:4px 6px;text-align:left;border-bottom:1px solid #EEEEE8;text-transform:uppercase;font-family:'DM Mono',monospace;">Lot</th><th style="font-size:7px;color:#aaa;padding:4px 6px;text-align:left;border-bottom:1px solid #EEEEE8;text-transform:uppercase;font-family:'DM Mono',monospace;">Type</th><th style="font-size:7px;color:#aaa;padding:4px 6px;text-align:left;border-bottom:1px solid #EEEEE8;text-transform:uppercase;font-family:'DM Mono',monospace;">Surface</th><th style="font-size:7px;color:#aaa;padding:4px 6px;text-align:left;border-bottom:1px solid #EEEEE8;text-transform:uppercase;font-family:'DM Mono',monospace;">Loyer</th></tr>
-                    <tr><td style="font-size:9px;color:#333;padding:4px 6px;border-bottom:1px solid #F5F5F3;">RDC</td><td style="font-size:9px;color:#333;padding:4px 6px;border-bottom:1px solid #F5F5F3;">T4 + jardin</td><td style="font-size:9px;color:#333;padding:4px 6px;border-bottom:1px solid #F5F5F3;">72 m²</td><td style="font-size:9px;color:#333;padding:4px 6px;border-bottom:1px solid #F5F5F3;">1 100 €</td></tr>
-                    <tr><td style="font-size:9px;color:#333;padding:4px 6px;border-bottom:1px solid #F5F5F3;">1er A</td><td style="font-size:9px;color:#333;padding:4px 6px;border-bottom:1px solid #F5F5F3;">T2</td><td style="font-size:9px;color:#333;padding:4px 6px;border-bottom:1px solid #F5F5F3;">36 m²</td><td style="font-size:9px;color:#333;padding:4px 6px;border-bottom:1px solid #F5F5F3;">600 €</td></tr>
-                    <tr><td style="font-size:9px;color:#333;padding:4px 6px;">1er B</td><td style="font-size:9px;color:#333;padding:4px 6px;">T2</td><td style="font-size:9px;color:#333;padding:4px 6px;">36 m²</td><td style="font-size:9px;color:#333;padding:4px 6px;">530 €</td></tr>
-                  </table>
-                </div>
-                <div class="pdf-footer"><span id="pdf-footer-brand">PropScan · Données DVF</span><span id="pdf-footer-client"></span></div>
-              </div>
-              <div style="display:flex;gap:8px;margin-top:10px;">
-                <button class="btn-or" style="flex:1;" onclick="generatePDF()">⬇ Télécharger le PDF</button>
-                <button class="btn-ghost" onclick="openModal()">🔗 Lien de partage</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── DOSSIER BANCAIRE ── -->
-      <div class="page" id="pg-banque">
-        <div class="pg-head"><div><div class="pg-title">Dossier bancaire</div><div class="pg-sub">Dossier complet conforme aux exigences des banques françaises</div></div></div>
-        <div class="g2">
-          <div>
-            <div class="form-section">
-              <div class="fs-title">1 — Présentation du projet</div>
-              <div class="field"><label>Intitulé</label><input id="bn" type="text" value="Immeuble de rapport — Marseille 6e" oninput="calcBanque()"></div>
-              <div class="field"><label>Adresse complète</label><input id="ba" type="text" value="18 rue Berlioz, 13006 Marseille" oninput="calcBanque()"></div>
-              <div class="f2">
-                <div class="field"><label>Type de bien</label><select id="bty" onchange="calcBanque()"><option>Immeuble de rapport</option><option>Appartement</option><option>Maison</option><option>Studio</option></select></div>
-                <div class="field"><label>Surface (m²)</label><input id="bsu" type="number" value="300" oninput="calcBanque()"></div>
-              </div>
-            </div>
-            <div class="form-section">
-              <div class="fs-title">2 — Plan de financement</div>
-              <div class="f2">
-                <div class="field"><label>Prix d'achat (€)</label><input id="bpx" type="number" value="849000" oninput="calcBanque()"></div>
-                <div class="field"><label>Frais de notaire (€)</label><input id="bfn" type="number" value="67920" oninput="calcBanque()"></div>
-              </div>
-              <div class="f2">
-                <div class="field"><label>Travaux (€)</label><input id="btr" type="number" value="0" oninput="calcBanque()"></div>
-                <div class="field"><label>Coût total (€)</label><input id="bct" type="text" value="916 920" readonly></div>
-              </div>
-              <div class="f2">
-                <div class="field"><label>Apport (€)</label><input id="bap" type="number" value="100000" oninput="calcBanque()"></div>
-                <div class="field"><label>Montant à emprunter (€)</label><input id="bem" type="text" value="816 920" readonly style="color:var(--or);font-weight:600;"></div>
-              </div>
-              <div class="f3">
-                <div class="field"><label>Taux (%)</label><input id="btx" type="number" value="3.2" step="0.1" oninput="calcBanque()"></div>
-                <div class="field"><label>Durée (ans)</label><input id="bdu" type="number" value="20" oninput="calcBanque()"></div>
-                <div class="field"><label>Assurance (€/mois)</label><input id="bas" type="number" value="120" oninput="calcBanque()"></div>
-              </div>
-            </div>
-            <div class="form-section">
-              <div class="fs-title">3 — Revenus & charges</div>
-              <div class="f2">
-                <div class="field"><label>Loyers bruts annuels (€)</label><input id="blo" type="number" value="56724" oninput="calcBanque()"></div>
-                <div class="field"><label>Taxe foncière (€/an)</label><input id="btf" type="number" value="6687" oninput="calcBanque()"></div>
-              </div>
-              <div class="f2">
-                <div class="field"><label>Charges (€/an)</label><input id="bch" type="number" value="2400" oninput="calcBanque()"></div>
-                <div class="field"><label>Vacance locative (%)</label><input id="bva" type="number" value="5" min="0" max="30" oninput="calcBanque()"></div>
-              </div>
-            </div>
-            <div class="form-section">
-              <div class="fs-title">4 — Profil emprunteur</div>
-              <div class="f2">
-                <div class="field"><label>Revenus mensuels nets (€)</label><input id="bre" type="number" value="5500" oninput="calcBanque()"></div>
-                <div class="field"><label>Charges mensuelles (€)</label><input id="bcm" type="number" value="800" oninput="calcBanque()"></div>
-              </div>
-              <div class="f2">
-                <div class="field"><label>Situation professionnelle</label><select id="bsp" onchange="calcBanque()"><option>CDI — Salarié</option><option>CDI — Cadre</option><option>Fonctionnaire</option><option>TNS / Indépendant</option><option>Chef d'entreprise</option></select></div>
-                <div class="field"><label>Ancienneté (ans)</label><input id="ban" type="number" value="8" oninput="calcBanque()"></div>
-              </div>
-              <div class="f2">
-                <div class="field"><label>Épargne disponible (€)</label><input id="bep" type="number" value="150000" oninput="calcBanque()"></div>
-                <div class="field"><label>Co-emprunteur</label><select id="bco" onchange="calcBanque()"><option>Non</option><option>Oui — CDI</option><option>Oui — Fonctionnaire</option><option>Oui — TNS</option></select></div>
-              </div>
-            </div>
-          </div>
-          <div>
-            <div class="form-section">
-              <div class="fs-title">Aperçu dossier bancaire</div>
-              <div style="background:var(--bg3);border:1px solid var(--br);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;">
-                <div style="padding:10px 14px;background:var(--anth);display:flex;justify-content:space-between;border-bottom:1px solid var(--br);">
-                  <span style="font-size:12px;font-weight:700;color:var(--or);" id="bk-brand">PropScan</span>
-                  <span style="font-size:9px;color:var(--w4);font-family:'DM Mono',monospace;">Dossier de financement immobilier</span>
-                </div>
-                <div style="padding:0 14px;">
-                  <div style="padding:10px 0;border-bottom:1px solid var(--br);">
-                    <div style="font-size:8px;font-weight:600;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-family:'DM Mono',monospace;">Présentation du projet</div>
-                    <div class="data-row"><span class="dr-label">Intitulé</span><span class="dr-val" id="bv-n">Immeuble — Marseille 6e</span></div>
-                    <div class="data-row"><span class="dr-label">Adresse</span><span class="dr-val" id="bv-a">18 rue Berlioz, Marseille</span></div>
-                    <div class="data-row"><span class="dr-label">Type / Surface</span><span class="dr-val" id="bv-ty">Immeuble · 300 m²</span></div>
-                  </div>
-                  <div style="padding:10px 0;border-bottom:1px solid var(--br);">
-                    <div style="font-size:8px;font-weight:600;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-family:'DM Mono',monospace;">Plan de financement</div>
-                    <div class="data-row"><span class="dr-label">Prix d'achat</span><span class="dr-val" id="bv-px">849 000 €</span></div>
-                    <div class="data-row"><span class="dr-label">Coût total</span><span class="dr-val or" id="bv-ct2">916 920 €</span></div>
-                    <div class="data-row"><span class="dr-label">Apport</span><span class="dr-val green" id="bv-ap">100 000 €</span></div>
-                    <div class="data-row"><span class="dr-label">Montant emprunté</span><span class="dr-val or" id="bv-em">816 920 €</span></div>
-                    <div class="data-row"><span class="dr-label">Taux / Durée</span><span class="dr-val" id="bv-tx">3,2% sur 20 ans</span></div>
-                  </div>
-                  <div style="padding:10px 0;border-bottom:1px solid var(--br);">
-                    <div style="font-size:8px;font-weight:600;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-family:'DM Mono',monospace;">Simulation crédit</div>
-                    <div class="data-row"><span class="dr-label">Mensualité crédit</span><span class="dr-val red" id="bv-men2">−4 612 €/mois</span></div>
-                    <div class="data-row"><span class="dr-label">Assurance</span><span class="dr-val red" id="bv-as">−120 €/mois</span></div>
-                  </div>
-                  <div style="padding:10px 0;border-bottom:1px solid var(--br);">
-                    <div style="font-size:8px;font-weight:600;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-family:'DM Mono',monospace;">Rentabilité & cashflow</div>
-                    <div class="data-row"><span class="dr-label">Rentabilité brute</span><span class="dr-val or" id="bv-rb2">6,68%</span></div>
-                    <div class="data-row"><span class="dr-label">Cashflow mensuel</span><span class="dr-val green" id="bv-cf2">+484 €/mois</span></div>
-                  </div>
-                  <div style="padding:10px 0;">
-                    <div style="font-size:8px;font-weight:600;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-family:'DM Mono',monospace;">Profil emprunteur</div>
-                    <div class="data-row"><span class="dr-label">Situation</span><span class="dr-val" id="bv-sp2">CDI · 8 ans</span></div>
-                    <div class="data-row"><span class="dr-label">Revenus nets</span><span class="dr-val green" id="bv-re">5 500 €/mois</span></div>
-                    <div class="data-row"><span class="dr-label">Taux endettement après</span><span class="dr-val" id="bv-ep3">25,7%</span></div>
-                    <div class="data-row"><span class="dr-label">Reste à vivre</span><span class="dr-val green" id="bv-rv">4 088 €/mois</span></div>
-                  </div>
-                </div>
-              </div>
-              <div style="display:flex;gap:8px;">
-                <button class="btn-or" style="flex:1;" onclick="toast('✓ Dossier bancaire PDF généré')">⬇ Générer le PDF</button>
-                <button class="btn-ghost" onclick="toast('✓ Email envoyé au courtier')">Envoyer au courtier</button>
-                <button class="btn-ghost" onclick="openModal()">Partager</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── DVF ── -->
-      <div class="page" id="pg-dvf">
-        <div class="pg-head"><div><div class="pg-title">Données DVF</div><div class="pg-sub">Transactions notariales officielles depuis 2014 — data.gouv.fr</div></div></div>
-        <div class="g2" style="margin-bottom:14px;">
-          <div class="form-section">
-            <div class="fs-title">Recherche DVF</div>
-            <div class="field"><label>Adresse ou code postal</label><input id="dvf-search" type="text" placeholder="18 rue Berlioz ou 13006..."></div>
-            <div class="f2">
-              <div class="field"><label>Type de bien</label><select><option>Tous</option><option>Appartement</option><option>Maison</option><option>Immeuble</option></select></div>
-              <div class="field"><label>Période</label><select><option>12 derniers mois</option><option>24 mois</option><option>5 ans</option></select></div>
-            </div>
-            <button class="btn-or" style="width:100%;" onclick="searchDVF()">Rechercher</button>
-          </div>
-          <div class="card" style="margin-bottom:0;">
-            <div class="card-head"><div class="card-title">Indicateurs — Marseille 13006</div></div>
-            <div style="padding:0 14px;">
-              <div class="stat-row"><span class="sr-label">Prix moyen/m²</span><span class="sr-val or">4 133 €/m²</span></div>
-              <div class="stat-row"><span class="sr-label">Prix médian/m²</span><span class="sr-val or">3 980 €/m²</span></div>
-              <div class="stat-row"><span class="sr-label">Transactions (12 mois)</span><span class="sr-val">247</span></div>
-              <div class="stat-row"><span class="sr-label">Délai moyen de vente</span><span class="sr-val">68 jours</span></div>
-              <div class="stat-row"><span class="sr-label">Évolution sur 1 an</span><span class="sr-val green">+2,3%</span></div>
-              <div class="stat-row"><span class="sr-label">Loyer moyen/m²</span><span class="sr-val or">15,8 €/m²</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-head"><div class="card-title">Transactions récentes — Marseille 13006</div></div>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Type</th><th>Adresse</th><th>Date</th><th>Surface</th><th>Prix</th><th>Prix/m²</th></tr></thead>
-              <tbody>
-                <tr><td class="td-main">Appartement</td><td class="td-sub">Rue Breteuil, 13006</td><td class="td-sub">Mars 2025</td><td class="td-sub">72 m²</td><td class="td-price">294 000 €</td><td class="td-score">4 083 €</td></tr>
-                <tr><td class="td-main">Appartement</td><td class="td-sub">Cours Lieutaud, 13006</td><td class="td-sub">Jan. 2025</td><td class="td-sub">45 m²</td><td class="td-price">189 000 €</td><td class="td-score">4 200 €</td></tr>
-                <tr><td class="td-main">Appartement</td><td class="td-sub">Rue Paradis, 13006</td><td class="td-sub">Nov. 2024</td><td class="td-sub">38 m²</td><td class="td-price">152 000 €</td><td class="td-score">4 000 €</td></tr>
-                <tr><td class="td-main">Maison</td><td class="td-sub">Av. du Prado, 13006</td><td class="td-sub">Oct. 2024</td><td class="td-sub">110 m²</td><td class="td-price">485 000 €</td><td class="td-score">4 409 €</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── PARTAGE ── -->
-      <div class="page" id="pg-partage">
-        <div class="pg-head"><div><div class="pg-title">Partager un projet</div><div class="pg-sub">Partagez un dossier avec votre client sans qu'il s'inscrive</div></div></div>
-        <div class="g2">
-          <div class="form-section">
-            <div class="fs-title">Configurer le partage</div>
-            <div class="field"><label>Projet</label><select><option>Immeuble de rapport — Marseille 6e (849 000 €)</option><option>T2 Vue mer — Marseille 13003 (59 999 €)</option><option>Studio rénové — Lyon 7e (89 000 €)</option></select></div>
-            <div class="field"><label>Type de dossier</label><select><option>Dossier client complet (PDF)</option><option>Dossier bancaire</option><option>Fiche de synthèse</option></select></div>
-            <div class="field"><label>Message</label><textarea style="min-height:70px;resize:vertical;" placeholder="Bonjour, je vous partage cette opportunité d'investissement..."></textarea></div>
-            <div class="f2">
-              <div class="field"><label>Expiration</label><select><option>7 jours</option><option>30 jours</option><option>Sans expiration</option></select></div>
-              <div class="field"><label>Commentaires</label><div style="display:flex;align-items:center;gap:8px;margin-top:6px;"><label class="toggle"><input type="checkbox" checked><span class="tg"></span></label><span style="font-size:12px;color:var(--w3);">Autorisés</span></div></div>
-            </div>
-            <button class="btn-or" style="width:100%;margin-top:4px;" onclick="genLink()">Générer le lien</button>
-          </div>
-          <div>
-            <div class="form-section" id="share-result" style="display:none;">
-              <div class="fs-title">Lien généré</div>
-              <div class="share-link" id="share-link-val">https://app.propscan.fr/share/aB3xK9mRp</div>
-              <div style="display:flex;gap:8px;">
-                <button class="btn-or" style="flex:1;" onclick="toast('✓ Lien copié')">Copier</button>
-                <button class="btn-ghost" onclick="toast('✓ Email envoyé')">Email</button>
-                <button class="btn-ghost" onclick="toast('✓ WhatsApp')">WhatsApp</button>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-head"><div class="card-title">Liens récents</div></div>
-              <div class="row-item"><div class="ri-ico" style="font-size:10px;color:var(--or);">🔗</div><div style="flex:1;min-width:0;"><div class="ri-main">T2 Marseille — M. Martin</div><div class="ri-sub">Il y a 2 jours · 3 vues</div></div><button class="btn-sm" onclick="toast('✓ Copié')">Copier</button></div>
-              <div class="row-item"><div class="ri-ico" style="font-size:10px;color:var(--or);">🔗</div><div style="flex:1;min-width:0;"><div class="ri-main">Immeuble Toulouse — Mme Durand</div><div class="ri-sub">Il y a 5 jours · 1 vue</div></div><button class="btn-sm" onclick="toast('✓ Copié')">Copier</button></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── ALERTES ── -->
-      <div class="page" id="pg-alertes">
-        <div class="pg-head">
-          <div><div class="pg-title">Alertes</div><div class="pg-sub">3 nouvelles depuis votre dernière visite</div></div>
-          <div class="pg-actions"><button class="btn-or">+ Nouvelle alerte</button></div>
-        </div>
-        <div class="card" style="margin-bottom:12px;">
-          <div class="card-head"><div class="card-title">Déclenchées récemment</div></div>
-          <div class="alert-item"><div class="ai-dot" style="background:var(--green)"></div><div class="ai-body"><div class="ai-title">Bien sous-évalué — Marseille</div><div class="ai-sub">59 999€ pour 36m² — prix 34% sous marché DVF</div></div><div class="ai-time">12 min</div></div>
-          <div class="alert-item"><div class="ai-dot" style="background:var(--or)"></div><div class="ai-body"><div class="ai-title">Baisse de prix — T3 Lyon 7e</div><div class="ai-sub">142 000€ → 134 000€ (−8 000€)</div></div><div class="ai-time">2h</div></div>
-          <div class="alert-item"><div class="ai-dot" style="background:var(--blue)"></div><div class="ai-body"><div class="ai-title">Nouvelle opportunité — Toulouse</div><div class="ai-sub">Immeuble 320 000€ — renta 9,3%</div></div><div class="ai-time">Hier</div></div>
-        </div>
-        <div class="card">
-          <div class="card-head"><div class="card-title">Mes alertes actives</div></div>
-          <div class="alert-item"><div class="ai-dot" style="background:var(--green)"></div><div class="ai-body"><div class="ai-title">T2 Marseille — Rentabilité min. 7%</div><div class="ai-sub">Budget max. 150 000 € · Secteurs 13e, 14e, 15e</div></div><span class="ai-badge badge-on">Active</span></div>
-          <div class="alert-item"><div class="ai-dot" style="background:var(--blue)"></div><div class="ai-body"><div class="ai-title">Immeuble de rapport — France entière</div><div class="ai-sub">Budget max. 500 000 € · Rentabilité min. 8%</div></div><span class="ai-badge badge-on">Active</span></div>
-          <div class="alert-item"><div class="ai-dot" style="background:var(--w4)"></div><div class="ai-body"><div class="ai-title">Studio LMNP — Lyon</div><div class="ai-sub">Budget max. 120 000 € · DPE A ou B</div></div><span class="ai-badge badge-off">En pause</span></div>
-        </div>
-      </div>
-
-      <!-- ── PARAMÈTRES ── -->
-      <div class="page" id="pg-params">
-        <div class="pg-head"><div><div class="pg-title">Paramètres & Logo</div><div class="pg-sub">Personnalisez votre espace PropScan</div></div></div>
-        <div class="g2">
-          <div>
-            <div class="form-section">
-              <div class="fs-title">Identité visuelle</div>
-              <div class="field"><label>Logo (apparaît sur tous vos dossiers)</label>
-                <div class="logo-drop"><input type="file" accept="image/*" onchange="uploadLogo(this,'settings')"><img class="logo-preview" id="set-logo-preview" src=""><div id="set-logo-placeholder"><div class="logo-drop-text">↑ Uploader votre logo</div><div class="logo-drop-sub">PNG, JPG ou SVG</div></div></div>
-              </div>
-              <div class="f2">
-                <div class="field"><label>Nom de l'agence</label><input id="sa" type="text" placeholder="PropScan" oninput="syncBrand()"></div>
-                <div class="field"><label>Couleur principale</label><input id="sc" type="color" value="#1A1A1A" onchange="syncBrand()"></div>
-              </div>
-              <button class="btn-or" style="width:100%;" onclick="toast('✓ Identité visuelle sauvegardée')">Sauvegarder</button>
-            </div>
-            <div class="form-section">
-              <div class="fs-title">Mon compte</div>
-              <div class="f2">
-                <div class="field"><label>Prénom</label><input id="sp" type="text" value="Jean" oninput="syncUser()"></div>
-                <div class="field"><label>Nom</label><input id="sn" type="text" value="Dupont" oninput="syncUser()"></div>
-              </div>
-              <div class="field"><label>Email</label><input type="email" value="jean.dupont@email.com"></div>
-              <div class="field"><label>Téléphone</label><input type="tel" placeholder="+33 6 00 00 00 00"></div>
-              <button class="btn-or" style="width:100%;" onclick="toast('✓ Profil mis à jour')">Mettre à jour</button>
-            </div>
-          </div>
-          <div>
-            <div class="form-section">
-              <div class="fs-title">Notifications</div>
-              <div>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--br);"><div><div style="font-size:12px;font-weight:600;color:var(--white);margin-bottom:2px;">Alertes nouvelles annonces</div><div style="font-size:10px;color:var(--w3);">Notification dès qu'un bien correspond</div></div><label class="toggle"><input type="checkbox" checked><span class="tg"></span></label></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--br);"><div><div style="font-size:12px;font-weight:600;color:var(--white);margin-bottom:2px;">Baisses de prix</div><div style="font-size:10px;color:var(--w3);">Alertes sur les réductions</div></div><label class="toggle"><input type="checkbox" checked><span class="tg"></span></label></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;"><div><div style="font-size:12px;font-weight:600;color:var(--white);margin-bottom:2px;">Résumé hebdomadaire</div><div style="font-size:10px;color:var(--w3);">Email récapitulatif chaque lundi</div></div><label class="toggle"><input type="checkbox"><span class="tg"></span></label></div>
-              </div>
-            </div>
-            <div class="form-section">
-              <div class="fs-title">Abonnement</div>
-              <div class="data-row"><span class="dr-label">Plan actuel</span><span class="dr-val or">Plan Pro — 99€/mois TTC</span></div>
-              <div class="data-row"><span class="dr-label">Prochain paiement</span><span class="dr-val">25 avril 2026</span></div>
-              <div class="data-row"><span class="dr-label">Tarif fondateur à vie</span><span class="dr-val green">✓ Actif</span></div>
-              <button class="btn-ghost" style="width:100%;margin-top:12px;" onclick="toast('Redirection gestion abonnement...')">Gérer l'abonnement</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div class="price-card featured">
+      <div class="price-badge">⭐ RECOMMANDÉ</div>
+      <div class="price-plan">Pro</div>
+      <div class="price-amount">49€<span>/mois</span></div>
+      <div class="price-desc">Pour les investisseurs actifs qui analysent plusieurs biens par semaine.</div>
+      <ul class="price-features">
+        <li>Analyses illimitées</li>
+        <li>Tout le plan Essentiel</li>
+        <li>Dossier bancaire complet</li>
+        <li>Alertes automatiques</li>
+        <li>Partage client par lien</li>
+        <li>Support prioritaire</li>
+      </ul>
+      <a href="https://buy.stripe.com/28E5kwgEEgk01eL28F3ZK01" target="_blank" class="btn-price btn-price-or">S'abonner →</a>
     </div>
   </div>
-</div>
+</section>
 
-<!-- MODAL PARTAGE -->
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="section-label">FAQ</div>
+  <h2 class="section-title">Questions fréquentes</h2>
+  <p class="section-sub" style="margin-bottom:40px;">Tout ce que vous devez savoir sur PropScan.</p>
+  <div class="faq-list">
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">PropScan est-il vraiment gratuit pour commencer ?<span>+</span></div>
+      <div class="faq-a">Oui — vous créez votre compte gratuitement et accédez à 6 analyses de biens. Aucune carte bancaire requise pour démarrer.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">D'où viennent les annonces ?<span>+</span></div>
+      <div class="faq-a">PropScan agrège automatiquement les annonces de LeBonCoin, SeLoger, PAP, BienIci et plus de 1 500 autres sites. Les annonces sont mises à jour toutes les 30 minutes.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Comment fonctionne le calcul de rentabilité ?<span>+</span></div>
+      <div class="faq-a">PropScan calcule automatiquement la rentabilité brute, nette, le cashflow mensuel et la mensualité de crédit. Les données DVF officielles permettent de comparer le prix au marché réel.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Puis-je annuler à tout moment ?<span>+</span></div>
+      <div class="faq-a">Oui, sans engagement. Vous pouvez annuler votre abonnement à tout moment depuis votre espace client. Aucuns frais supplémentaires.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Le PDF inclut-il mon logo ?<span>+</span></div>
+      <div class="faq-a">Oui — vous uploadez votre logo dans les paramètres et il apparaît automatiquement sur tous vos dossiers PDF et dossiers bancaires.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-final">
+  <h2>Prêt à analyser<br>plus vite que les autres ?</h2>
+  <p>Rejoignez les investisseurs qui utilisent PropScan.</p>
+  <a href="#" class="btn-cta-final" onclick="openModal()">Commencer gratuitement →</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <svg width="18" height="18" viewBox="0 0 64 64" fill="none"><path d="M32 4L60 32L32 60L4 32L32 4Z" stroke="#C9A84C" stroke-width="1.5" fill="none"/></svg>
+    <div class="footer-logo-name">PropScan</div>
+  </div>
+  <div class="footer-links">
+    <a href="#" class="footer-link">Mentions légales</a>
+    <a href="#" class="footer-link">CGU</a>
+    <a href="#" class="footer-link">Contact</a>
+  </div>
+  <div class="footer-copy">© 2026 PropScan · Tous droits réservés</div>
+</footer>
+
+<!-- MODAL INSCRIPTION -->
 <div class="modal-bg" id="modal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
-    <h3>Lien de partage</h3>
-    <p>Partagez ce dossier avec votre client. Il peut le consulter sans s'inscrire. Le lien expire dans 7 jours.</p>
-    <div class="share-link">https://app.propscan.fr/share/mq7x2kLpRnB</div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn-or" style="flex:1;" onclick="toast('✓ Lien copié');closeModal()">Copier le lien</button>
-      <button class="btn-ghost" onclick="toast('✓ Email envoyé');closeModal()">Email</button>
-      <button class="btn-ghost" onclick="toast('✓ WhatsApp');closeModal()">WhatsApp</button>
+    <div class="modal-logo">
+      <svg width="20" height="20" viewBox="0 0 64 64" fill="none"><path d="M32 4L60 32L32 60L4 32L32 4Z" stroke="#C9A84C" stroke-width="1.5" fill="none"/><path d="M18 21H29C32.866 21 36 24.134 36 28C36 31.866 32.866 35 29 35H23V43H18V21Z" stroke="#111" stroke-width="1.8" fill="none" stroke-linejoin="round"/><line x1="23" y1="21" x2="23" y2="35" stroke="#111" stroke-width="1.8"/></svg>
+      <div class="modal-logo-name">PropScan</div>
     </div>
+    <h3>Créez votre compte</h3>
+    <p>Gratuit · 6 analyses offertes · Sans carte bancaire</p>
+    <div class="modal-field"><label>Prénom</label><input type="text" placeholder="Rafael"></div>
+    <div class="modal-field"><label>Email</label><input type="email" placeholder="vous@email.com"></div>
+    <div class="modal-field"><label>Mot de passe</label><input type="password" placeholder="••••••••"></div>
+    <button class="modal-btn" onclick="goToApp()">Créer mon compte gratuit →</button>
+    <div class="modal-sep">ou</div>
+    <div class="modal-login">Déjà un compte ? <a href="app.html">Se connecter →</a></div>
   </div>
 </div>
 
-<!-- MODAL IMPORT ANNONCE -->
-<div class="modal-bg" id="modal-import">
-  <div class="modal" style="width:560px;">
-    <button class="modal-close" onclick="closeImport()">✕</button>
-    <h3>Importer une annonce</h3>
-    <p>Copiez le lien d'une annonce LeBonCoin, SeLoger, PAP, BienIci et PropScan extrait automatiquement toutes les informations.</p>
-    <div class="import-box">
-      <div class="import-row">
-        <input class="import-input" id="url-input-modal" type="url" placeholder="https://www.leboncoin.fr/ventes_immobilieres/...">
-        <button class="btn-or" onclick="importURL('modal')">Extraire</button>
-      </div>
-      <div class="import-preview" id="import-preview-modal">
-        <img class="import-img" id="import-img-modal" src="">
-        <div class="import-info">
-          <div class="import-title" id="import-title-modal"></div>
-          <div class="import-meta" id="import-meta-modal"></div>
-          <div class="import-price" id="import-price-modal"></div>
-        </div>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn-or" style="flex:1;" onclick="importToPDF();closeImport()">→ Créer le dossier PDF</button>
-      <button class="btn-ghost" onclick="addToFavorites();closeImport()">Ajouter aux favoris</button>
-      <button class="btn-ghost" onclick="closeImport()">Annuler</button>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ══ SUPABASE ══
-const SUPA_URL = "https://luzxxlucfvsqmfhnlgmw.supabase.co";
-const SUPA_KEY = "sb_publishable_BCerMHAhbFKl8elGqu29hw_2x0HchoD";
-let sb;
-try { sb = supabase.createClient(SUPA_URL, SUPA_KEY); } catch(e) { console.log("Supabase init:", e); }
-// ══ NAV ══
-function nav(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
-  document.getElementById('pg-' + id).classList.add('on');
-  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('on'));
-  const sb = document.getElementById('sb-' + id);
-  if (sb) sb.classList.add('on');
-}
-
-// ══ LOGIN ══
-function doLogin() {
-  const email = document.getElementById('login-email').value;
-
-  // Cacher login, montrer app
-  const loginEl = document.getElementById('login');
-  const appEl   = document.getElementById('app');
-  loginEl.style.display = 'none';
-  appEl.style.display   = 'flex';
-  appEl.style.flexDirection = 'column';
-
-  // Personnaliser le nom
-  if (email && email.includes('@')) {
-    const name = email.split('@')[0];
-    const cap  = name.charAt(0).toUpperCase() + name.slice(1);
-    const greet = document.getElementById('greeting');
-    const av    = document.getElementById('tb-av');
-    const un    = document.getElementById('tb-uname');
-    if (greet) greet.textContent = 'Bonjour, ' + cap + '.';
-    if (av)    av.textContent    = cap.charAt(0).toUpperCase();
-    if (un)    un.textContent    = cap;
-  }
-
-  // Charger les annonces depuis Supabase
-  loadAnnonces();
-
-  // Si on vient de l'extension (#import, #pdf, #simulateur…)
-  const hash = window.location.hash.replace('#','');
-  if (hash && document.getElementById('pg-' + hash)) {
-    nav(hash);
-  } else {
-    nav('dashboard');
-  }
-
-  calcPDF(); calcBanque(); calcSim();
-}
-
-// Permettre login avec touche Entrée
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && document.getElementById('login').style.display !== 'none') {
-    doLogin();
-  }
-});
-
-// ══ CHARGEMENT ANNONCES SUPABASE ══
-async function loadAnnonces() {
-  if (!sb) return;
-  try {
-    const { data, error } = await sb
-      .from('annonces')
-      .select('*')
-      .order('score', { ascending: false })
-      .limit(50);
-
-    if (error || !data) return;
-
-    renderAnnonces(data);
-    renderDashboardOpportunites(data.slice(0, 4));
-    updateDashboardKPIs(data);
-  } catch(e) {
-    console.log('Supabase load:', e);
-  }
-}
-
-function fmt2(n) { return Math.round(n).toLocaleString('fr-FR'); }
-
-function renderAnnonces(annonces) {
-  const tbody = document.getElementById('annonces-tbody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-  annonces.forEach(a => {
-    const tr = document.createElement('tr');
-    const tag = a.est_particulier
-      ? `<span class="tag tag-part">PART</span>`
-      : `<span class="tag tag-pro">PRO</span>`;
-    const renta = parseFloat(a.rentabilite || 0);
-    const cf    = parseInt(a.cashflow || 0);
-    const cfTxt = (cf >= 0 ? '+' : '') + fmt2(cf) + ' €';
-    const cfCol = cf >= 0 ? 'var(--green)' : 'var(--red)';
-    tr.innerHTML = `
-      <td>
-        <div style="display:flex;gap:10px;align-items:center;">
-          ${a.image_url ? `<img src="${a.image_url}" style="width:52px;height:38px;object-fit:cover;border-radius:4px;flex-shrink:0;" onerror="this.style.display='none'">` : ''}
-          <div>
-            <div class="td-main">${a.titre}</div>
-            <div class="td-sub">${a.surface ? a.surface + ' m²' : ''} · ${tag} · ${a.ville || ''}</div>
-          </div>
-        </div>
-      </td>
-      <td class="td-price">${fmt2(a.prix)} €</td>
-      <td class="td-renta">${renta.toFixed(1)}%</td>
-      <td style="font-size:12px;font-weight:700;font-family:'DM Mono',monospace;color:${cfCol};">${cfTxt}</td>
-      <td style="font-size:11px;color:var(--green);font-family:'DM Mono',monospace;">${a.prix_m2 ? fmt2(a.prix_m2)+' €/m²' : '—'}</td>
-      <td class="td-score">${a.score || '—'}</td>
-      <td class="td-sub">${a.source}</td>
-      <td>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;">
-          <button class="btn-sm-or" onclick="prefillFromDashboard(${a.prix},${a.surface||0},'${(a.titre||'').replace(/'/g,"\\'")}');nav('pdf')">PDF</button>
-          <button class="btn-sm" onclick="prefillBanque(${a.prix},'${(a.titre||'').replace(/'/g,"\\'")}');nav('banque')">Banque</button>
-          ${a.url_original ? `<a href="${a.url_original}" target="_blank" class="btn-sm" style="text-decoration:none;display:inline-flex;align-items:center;">↗</a>` : ''}
-        </div>
-      </td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-function renderDashboardOpportunites(annonces) {
-  const container = document.getElementById('dashboard-opportunites');
-  if (!container) return;
-  container.innerHTML = '';
-  annonces.forEach(a => {
-    const cf    = parseInt(a.cashflow || 0);
-    const renta = parseFloat(a.rentabilite || 0);
-    const div = document.createElement('div');
-    div.className = 'row-item';
-    div.onclick = () => { prefillFromDashboard(a.prix, a.surface||0, a.titre); nav('pdf'); };
-    div.innerHTML = `
-      ${a.image_url
-        ? `<img class="ri-img" src="${a.image_url}" onerror="this.outerHTML='<div class=\\"ri-ico\\">🏠</div>'">`
-        : `<div class="ri-ico">🏠</div>`}
-      <div style="flex:1;min-width:0;">
-        <div class="ri-main">${a.titre}</div>
-        <div class="ri-sub">${a.surface ? a.surface+' m²' : ''} · ${a.source} · ${a.ville}</div>
-      </div>
-      <div style="text-align:right;flex-shrink:0;">
-        <div class="ri-val" style="color:var(--or);">${fmt2(a.prix)} €</div>
-        <div style="font-size:10px;color:var(--green);font-family:'DM Mono',monospace;">${renta.toFixed(1)}% · ${a.score}/10</div>
-      </div>`;
-    container.appendChild(div);
-  });
-}
-
-function updateDashboardKPIs(annonces) {
-  const kpiAnn = document.getElementById('kpi-annonces');
-  const kpiOpp = document.getElementById('kpi-opportunites');
-  const kpiRenta = document.getElementById('kpi-renta');
-  if (kpiAnn)   kpiAnn.textContent   = annonces.length;
-  const opps = annonces.filter(a => parseFloat(a.rentabilite) >= 7);
-  if (kpiOpp)   kpiOpp.textContent   = opps.length;
-  if (kpiRenta && annonces.length) {
-    const avg = annonces.reduce((s,a) => s + parseFloat(a.rentabilite||0), 0) / annonces.length;
-    kpiRenta.textContent = avg.toFixed(1) + '%';
-  }
-}
-
-// ══ TOAST ══
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('on');
-  setTimeout(() => t.classList.remove('on'), 2800);
-}
-
-// ══ MODALS ══
 function openModal() { document.getElementById('modal').classList.add('on'); }
 function closeModal() { document.getElementById('modal').classList.remove('on'); }
-function openImport() { document.getElementById('modal-import').classList.add('on'); }
-function closeImport() { document.getElementById('modal-import').classList.remove('on'); }
-window.addEventListener('click', e => {
-  if (e.target.id === 'modal') closeModal();
-  if (e.target.id === 'modal-import') closeImport();
-});
+window.addEventListener('click', e => { if(e.target.id==='modal') closeModal(); });
 
-// ══ IMPORT URL ══
-const DEMO_ANNONCES = [
-  {title:'Appartement T3 69m² — Marseille 6e',meta:'69 m² · Appartement · LeBonCoin · Aujourd\'hui',price:'325 000 €',px:325000,su:69,img:'https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=200&h=150&fit=crop'},
-  {title:'Studio meublé — Lyon 7e',meta:'28 m² · Studio · SeLoger · Hier',price:'89 000 €',px:89000,su:28,img:'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=200&h=150&fit=crop'},
-  {title:'Maison T4 avec jardin — Montpellier',meta:'110 m² · Maison · PAP · 2 jours',price:'198 000 €',px:198000,su:110,img:'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=200&h=150&fit=crop'},
-  {title:'Immeuble de rapport 4 lots — Toulouse',meta:'180 m² · Immeuble · BienIci · 3 jours',price:'320 000 €',px:320000,su:180,img:'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=200&h=150&fit=crop'},
-];
-let currentImport = null;
-
-function importURL(ctx) {
-  const input = document.getElementById('url-input-' + ctx);
-  const url = input.value.trim();
-  if (!url) { toast('⚠ Collez un lien d\'annonce valide'); return; }
-
-  toast('⏳ Extraction en cours...');
-
-  // Simulation d'extraction — en production on utilise un proxy
-  setTimeout(() => {
-    const demo = DEMO_ANNONCES[Math.floor(Math.random() * DEMO_ANNONCES.length)];
-    currentImport = demo;
-    const preview = document.getElementById('import-preview-' + ctx);
-    document.getElementById('import-img-' + ctx).src = demo.img;
-    document.getElementById('import-title-' + ctx).textContent = demo.title;
-    document.getElementById('import-meta-' + ctx).textContent = demo.meta;
-    document.getElementById('import-price-' + ctx).textContent = demo.price;
-    preview.classList.add('show');
-    toast('✓ Annonce importée — ' + demo.title);
-  }, 1200);
+function goToApp() {
+  const email = document.querySelector('#modal input[type="email"]').value;
+  const prenom = document.querySelector('#modal input[type="text"]').value;
+  if (!email || !email.includes('@')) { alert('Entrez un email valide'); return; }
+  // Rediriger vers l'app avec le compte créé
+  window.location.href = 'app.html';
 }
 
-function addToFavorites() {
-  if (!currentImport) return;
-  const tbody = document.getElementById('annonces-tbody');
-  const renta = (currentImport.su * 15.8 * 12 / currentImport.px * 100).toFixed(1);
-  const cf = Math.round(currentImport.su * 15.8 - currentImport.px * 0.032 / 12);
-  const tr = document.createElement('tr');
-  tr.innerHTML = `<td><div class="td-main">${currentImport.title}</div><div class="td-sub"><span class="tag tag-new">NOUVEAU</span> · ${currentImport.meta}</div></td><td class="td-price">${currentImport.price}</td><td class="td-renta">${renta}%</td><td class="td-cf">${cf > 0 ? '+' : ''}${cf} €</td><td style="font-size:11px;color:var(--green);font-family:'DM Mono',monospace;">−</td><td class="td-score">–</td><td class="td-sub">Import</td><td><div style="display:flex;gap:4px;"><button class="btn-sm-or" onclick="nav('pdf')">PDF</button><button class="btn-sm" onclick="nav('banque')">Banque</button></div></td>`;
-  tbody.insertBefore(tr, tbody.firstChild);
-  toast('✓ Ajouté aux annonces');
+function toggleFaq(el) {
+  el.classList.toggle('open');
 }
 
-function importToPDF() {
-  if (!currentImport) return;
-  document.getElementById('pp').value = currentImport.px;
-  document.getElementById('psu').value = currentImport.su;
-  document.getElementById('pa').value = currentImport.title;
-  document.getElementById('plo').value = Math.round(currentImport.su * 15.8 * 12);
-  calcPDF();
-  nav('pdf');
-  toast('✓ Données importées dans le dossier PDF');
-}
-
-function importToPDFDirect(px, su, title) {
-  document.getElementById('pp').value = px;
-  document.getElementById('psu').value = su;
-  document.getElementById('pa').value = title;
-  document.getElementById('plo').value = Math.round(su * 15.8 * 12);
-  calcPDF();
-}
-
-// ══ HELPERS ══
-function v(id) { return parseFloat(document.getElementById(id).value) || 0; }
-function sv(id) { return document.getElementById(id) ? document.getElementById(id).value || '' : ''; }
-function fmt(n) { return Math.round(n).toLocaleString('fr-FR'); }
-function set(id, val) { const el = document.getElementById(id); if(el) el.textContent = val; }
-
-// ══ CALC PDF ══
-function calcPDF() {
-  const prix = v('pp'), lo = v('plo'), tf = v('ptf'), ch = v('pch'), tr = v('ptr'), ap = v('pap'), du = v('pdu'), tx = v('ptx');
-  const fn = Math.round(prix * 0.08), ct = prix + fn + tr, em = Math.max(0, ct - ap);
-  const tm = tx / 100 / 12, n = du * 12;
-  const men = tm > 0 ? Math.round(em * (tm * Math.pow(1 + tm, n)) / (Math.pow(1 + tm, n) - 1)) : Math.round(em / n);
-  const cf = Math.round(lo / 12 - (tf + ch) / 12 - men);
-  const rb = prix > 0 ? (lo / prix * 100).toFixed(2) : 0;
-  const rn = prix > 0 ? ((lo - tf - ch) / prix * 100).toFixed(2) : 0;
-  set('r-fn', fmt(fn) + ' €'); set('r-ct', fmt(ct) + ' €');
-  set('r-rb', rb + '%'); set('r-rn', rn + '%');
-  set('r-men', '−' + fmt(men) + ' €');
-  const cfEl = document.getElementById('r-cf');
-  if(cfEl){cfEl.textContent=(cf>=0?'+':'')+fmt(cf)+' €';cfEl.className='rb-val '+(cf>=0?'green':'red');}
-  set('pdf-rb', rb + '%'); set('pdf-rn', rn + '%');
-  set('pdf-cf-prev', (cf>=0?'+':'')+cf+'€');
-  updatePDFPreview();
-}
-
-function updatePDFPreview() {
-  const col = sv('pcol') || '#1A1A1A', ag = sv('pag') || 'PropScan';
-  const ty = sv('pty'), vi = sv('pvi'), su = sv('psu'), lo = sv('pl'), dp = sv('pd'), ad = sv('pa'), de = sv('pde');
-  const hd = document.getElementById('pdf-hd-preview');
-  if(hd) hd.style.background = col;
-  set('pdf-preview-brand', ag);
-  set('pdf-preview-title', ty + ' — ' + vi);
-  set('pdf-preview-sub', ad.substring(0, 40) + ' · ' + lo + ' lots · ' + su + ' m² · DPE ' + dp);
-  set('pdf-footer-brand', ag + ' · Données DVF');
-  set('pdf-footer-client', de ? 'Pour ' + de : '');
-}
-
-// ══ CALC SIM ══
-function calcSim() {
-  const prix = v('sim-px'), lo = v('sim-lo')||Math.round(v('sim-su')*15.8*12), tf = v('sim-tf')||Math.round(prix*0.008), ch = v('sim-ch')||2400, tr = v('sim-tr'), ap = v('sim-ap'), du = v('sim-du'), tx = v('sim-tx'), su = v('sim-su');
-  const fn = Math.round(prix * 0.08), ct = prix + fn + tr, em = Math.max(0, ct - ap);
-  const tm = tx / 100 / 12, n = du * 12;
-  const men = tm > 0 ? Math.round(em * (tm * Math.pow(1 + tm, n)) / (Math.pow(1 + tm, n) - 1)) : Math.round(em / n);
-  const cf = Math.round(lo / 12 - (tf + ch) / 12 - men);
-  const rb = prix > 0 ? (lo / prix * 100).toFixed(2) : 0;
-  const rn = prix > 0 ? ((lo - tf - ch) / prix * 100).toFixed(2) : 0;
-  const pm2 = su > 0 ? Math.round(prix / su) : 0;
-  set('sim-fn', fmt(fn) + ' €'); set('sim-ct', fmt(ct) + ' €'); set('sim-em', fmt(em) + ' €');
-  set('sim-men', '−' + fmt(men) + ' €');
-  set('sim-rb', rb + '%'); set('sim-rn', rn + '%');
-  const cfEl = document.getElementById('sim-cf');
-  if(cfEl){cfEl.textContent=(cf>=0?'+':'')+fmt(cf)+' €';cfEl.className='rb-val '+(cf>=0?'green':'red');}
-  set('sim-pm2', fmt(pm2) + ' €/m²');
-}
-
-function simToPDF() {
-  document.getElementById('pp').value = v('sim-px');
-  document.getElementById('psu').value = v('sim-su');
-  document.getElementById('pa').value = sv('sim-addr');
-  document.getElementById('plo').value = v('sim-lo')||Math.round(v('sim-su')*15.8*12);
-  document.getElementById('pap').value = v('sim-ap');
-  document.getElementById('pdu').value = v('sim-du');
-  document.getElementById('ptx').value = v('sim-tx');
-  calcPDF(); nav('pdf');
-  toast('✓ Données simulateur → dossier PDF');
-}
-
-function simToBanque() {
-  document.getElementById('bpx').value = v('sim-px');
-  document.getElementById('bap').value = v('sim-ap');
-  document.getElementById('bdu').value = v('sim-du');
-  document.getElementById('btx').value = v('sim-tx');
-  calcBanque(); nav('banque');
-  toast('✓ Données simulateur → dossier bancaire');
-}
-
-// ══ CALC BANQUE ══
-function calcBanque() {
-  const px = v('bpx'), fn = Math.round(px * 0.08), tr = v('btr'), ct = px + fn + tr, ap = v('bap'), em = Math.max(0, ct - ap);
-  const tx = v('btx'), du = v('bdu'), as = v('bas'), lo = v('blo'), tf = v('btf'), ch = v('bch'), va = v('bva');
-  const re = v('bre'), cm = v('bcm');
-  if(document.getElementById('bfn')) document.getElementById('bfn').value = fmt(fn);
-  if(document.getElementById('bct')) document.getElementById('bct').value = fmt(ct);
-  if(document.getElementById('bem')) document.getElementById('bem').value = fmt(em);
-  const tm = tx / 100 / 12, n = du * 12;
-  const men = tm > 0 ? Math.round(em * (tm * Math.pow(1 + tm, n)) / (Math.pow(1 + tm, n) - 1)) : Math.round(em / n);
-  const lon = Math.round(lo * (1 - va / 100));
-  const rb = px > 0 ? (lo / px * 100).toFixed(2) : 0;
-  const rn = px > 0 ? ((lo - tf - ch) / px * 100).toFixed(2) : 0;
-  const cf = Math.round(lon / 12 - (tf + ch) / 12 - men - as);
-  const ea = re > 0 ? (cm / re * 100).toFixed(1) : 0;
-  const epA = re > 0 ? ((cm + men + as) / re * 100).toFixed(1) : 0;
-  const rav = Math.round(re - cm - men - as);
-  const sp = sv('bsp'), n2 = sv('bn'), addr = sv('ba'), ty = sv('bty'), su = sv('bsu');
-  set('bv-n', n2); set('bv-a', addr);
-  set('bv-ty', ty + ' · ' + su + ' m²');
-  set('bv-px', fmt(px) + ' €'); set('bv-ct2', fmt(ct) + ' €');
-  set('bv-ap', fmt(ap) + ' €'); set('bv-em', fmt(em) + ' €');
-  set('bv-tx', tx + '% sur ' + du + ' ans');
-  set('bv-men2', '−' + fmt(men) + ' €/mois');
-  set('bv-as', '−' + fmt(as) + ' €/mois');
-  set('bv-rb2', rb + '%');
-  const cfEl2 = document.getElementById('bv-cf2');
-  if(cfEl2){cfEl2.textContent=(cf>=0?'+':'')+fmt(cf)+' €/mois';cfEl2.className='dr-val '+(cf>=0?'green':'red');}
-  set('bv-sp2', sp + ' · ' + v('ban') + ' ans');
-  set('bv-re', fmt(re) + ' €/mois');
-  set('bv-ep3', epA + '%');
-  const ravEl = document.getElementById('bv-rv');
-  if(ravEl){ravEl.textContent=fmt(rav)+' €/mois';ravEl.className='dr-val '+(rav>0?'green':'red');}
-}
-
-// ══ PREFILL ══
-function prefillFromDashboard(px, su, nom) {
-  document.getElementById('pp').value = px;
-  document.getElementById('psu').value = su;
-  document.getElementById('pa').value = nom;
-  document.getElementById('plo').value = Math.round(su * 15.8 * 12);
-  calcPDF();
-}
-function prefillBanque(px, nom) {
-  document.getElementById('bpx').value = px;
-  document.getElementById('bn').value = nom;
-  calcBanque();
-}
-
-// ══ PDF GENERATION ══
-function generatePDF() {
-  try {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit:'mm', format:'a4' });
-    const W = 210, H = 297;
-
-    // Données
-    const ag   = sv('pag') || 'PropScan';
-    const addr = sv('pa') || '—';
-    const ty   = sv('pty') || 'Bien immobilier';
-    const vi   = sv('pvi') || '—';
-    const dp   = sv('pd') || '—';
-    const su   = v('psu'), px = v('pp'), lo = v('plo');
-    const tf   = v('ptf'), ch = v('pch'), tr = v('ptr');
-    const ap   = v('pap'), du = v('pdu'), tx = v('ptx');
-    const pl   = v('pl');
-    const de   = sv('pde') || '';
-    const fn   = Math.round(px * 0.08);
-    const ct   = px + fn + tr;
-    const em   = Math.max(0, ct - ap);
-    const tm   = tx/100/12, nn = du*12;
-    const men  = tm > 0 ? Math.round(em*(tm*Math.pow(1+tm,nn))/(Math.pow(1+tm,nn)-1)) : Math.round(em/nn);
-    const cf   = Math.round(lo/12 - (tf+ch)/12 - men);
-    const rb   = px > 0 ? (lo/px*100).toFixed(2) : '0.00';
-    const rn   = px > 0 ? ((lo-tf-ch)/px*100).toFixed(2) : '0.00';
-    const pm2  = su > 0 ? Math.round(px/su) : 0;
-    const date = new Date().toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
-
-    // ── Couleurs ──
-    const NAVY  = [30, 50, 80];
-    const GOLD  = [180, 140, 50];
-    const WHITE = [255, 255, 255];
-    const LGREY = [245, 245, 242];
-    const MGREY = [100, 110, 120];
-    const DARK  = [30, 35, 40];
-
-    // ══ COLONNE DROITE (fond or) ══
-    doc.setFillColor(...GOLD);
-    doc.rect(148, 0, 62, H, 'F');
-
-    // ══ COLONNE GAUCHE (fond marine) ══
-    doc.setFillColor(...NAVY);
-    doc.rect(0, 0, 148, H, 'F');
-
-    // Barre or accent sur gauche
-    doc.setFillColor(...GOLD);
-    doc.rect(14, 28, 2, 60, 'F');
-
-    // ── Logo / Agence (haut gauche) ──
-    doc.setTextColor(...LGREY);
-    doc.setFontSize(7);
-    doc.setFont('helvetica','normal');
-    doc.text('DOSSIER ACQUÉREUR', 20, 20);
-
-    // ── Titre bien ──
-    doc.setTextColor(...WHITE);
-    doc.setFontSize(22);
-    doc.setFont('helvetica','bold');
-    const tyLines = doc.splitTextToSize(ty.toUpperCase(), 118);
-    doc.text(tyLines, 20, 40);
-
-    // ── Adresse ──
-    doc.setFontSize(10);
-    doc.setFont('helvetica','bold');
-    doc.setTextColor(...WHITE);
-    doc.text(addr.toUpperCase(), 20, 40 + tyLines.length * 10 + 8);
-
-    // ── Description / type ──
-    doc.setFontSize(9);
-    doc.setFont('helvetica','normal');
-    doc.setTextColor(180, 190, 200);
-    const descY = 40 + tyLines.length * 10 + 18;
-    doc.text(ty, 20, descY);
-
-    // ── Contact agent (bas gauche) ──
-    doc.setFillColor(20, 38, 65);
-    doc.rect(0, H-30, 148, 30, 'F');
-    doc.setTextColor(...LGREY);
-    doc.setFontSize(8);
-    doc.setFont('helvetica','bold');
-    doc.text(ag, 20, H-18);
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(7);
-    doc.setTextColor(160, 170, 180);
-    doc.text(date, 20, H-11);
-
-    // ══ COLONNE DROITE — KPIs ══
-    const kpis = [
-      { label: 'Surface', val: fmt(su) + ' m²' },
-      { label: 'Prix de vente FAI', val: fmt(px) + ' €' },
-      { label: 'Prix au m²', val: fmt(pm2) + ' €/m²' },
-      { label: 'Rentabilité brute', val: rb + '%' },
-      { label: 'Cashflow net / mois', val: (cf>=0?'+':'')+fmt(cf)+' €' },
-      { label: 'DPE', val: dp },
-    ];
-    if(pl > 0) kpis.splice(1, 0, { label: 'Nombre de lots', val: pl + ' lots' });
-
-    let ky = 40;
-    kpis.forEach(k => {
-      doc.setTextColor(...WHITE);
-      doc.setFontSize(18);
-      doc.setFont('helvetica','bold');
-      doc.text(k.val, 179, ky, {align:'center'});
-      doc.setFontSize(7);
-      doc.setFont('helvetica','normal');
-      doc.setTextColor(30, 25, 10);
-      doc.text(k.label, 179, ky + 6, {align:'center'});
-      // séparateur
-      doc.setDrawColor(200, 160, 60);
-      doc.setLineWidth(0.3);
-      doc.line(152, ky + 10, 206, ky + 10);
-      ky += 22;
-    });
-
-    // ══ PAGE 2 — Analyse financière ══
-    doc.addPage();
-
-    // Header page 2
-    doc.setFillColor(...NAVY);
-    doc.rect(0, 0, W, 22, 'F');
-    doc.setFillColor(...GOLD);
-    doc.rect(0, 22, W, 2, 'F');
-    doc.setTextColor(...WHITE);
-    doc.setFontSize(11);
-    doc.setFont('helvetica','bold');
-    doc.text(ag + ' — Analyse financière', 14, 14);
-    doc.setFontSize(8);
-    doc.setFont('helvetica','normal');
-    doc.setTextColor(180,185,195);
-    doc.text(ty + ' · ' + vi, 14, 20);
-    doc.setTextColor(...GOLD);
-    doc.text(date, W-14, 14, {align:'right'});
-
-    // ── 4 KPI blocs ──
-    const kpi4 = [
-      { label:'Prix d\'achat', val: fmt(px)+' €', color: NAVY },
-      { label:'Rentabilité brute', val: rb+'%', color: [40,80,60] },
-      { label:'Cashflow mensuel', val: (cf>=0?'+':'')+fmt(cf)+' €', color: cf>=0?[40,80,60]:[120,40,40] },
-      { label:'Rentabilité nette', val: rn+'%', color: [80,60,20] },
-    ];
-    kpi4.forEach((k, i) => {
-      const x = 14 + i * 46, y = 30;
-      doc.setFillColor(...k.color);
-      doc.rect(x, y, 44, 20, 'F');
-      doc.setTextColor(...WHITE);
-      doc.setFontSize(12);
-      doc.setFont('helvetica','bold');
-      doc.text(k.val, x+22, y+11, {align:'center'});
-      doc.setFontSize(6.5);
-      doc.setFont('helvetica','normal');
-      doc.setTextColor(200,200,210);
-      doc.text(k.label.toUpperCase(), x+22, y+17, {align:'center'});
-    });
-
-    // ── Section titre ──
-    const sectionTitle = (txt, y) => {
-      doc.setFillColor(...NAVY);
-      doc.rect(14, y, 182, 8, 'F');
-      doc.setFillColor(...GOLD);
-      doc.rect(14, y, 3, 8, 'F');
-      doc.setTextColor(...WHITE);
-      doc.setFontSize(8);
-      doc.setFont('helvetica','bold');
-      doc.text(txt.toUpperCase(), 21, y+5.5);
-    };
-
-    // ── Tableau ligne ──
-    let rowAlt = false;
-    const tableRow = (label, val, y, bold=false) => {
-      if(rowAlt) { doc.setFillColor(...LGREY); doc.rect(14, y-3, 182, 7, 'F'); }
-      rowAlt = !rowAlt;
-      doc.setTextColor(...DARK);
-      doc.setFontSize(8.5);
-      doc.setFont('helvetica', bold ? 'bold' : 'normal');
-      doc.text(label, 18, y+1);
-      doc.setFont('helvetica','bold');
-      doc.setTextColor(...NAVY);
-      doc.text(val, W-18, y+1, {align:'right'});
-    };
-
-    // Financement
-    sectionTitle('Plan de financement', 58);
-    rowAlt = false;
-    let cy = 70;
-    const finRows = [
-      ['Prix d\'achat FAI', fmt(px) + ' €'],
-      ['Frais de notaire (8 %)', fmt(fn) + ' €'],
-      ['Travaux estimés', fmt(tr) + ' €'],
-      ['Coût total de l\'opération', fmt(ct) + ' €'],
-      ['Apport personnel', fmt(ap) + ' €'],
-      ['Montant à emprunter', fmt(em) + ' €'],
-      ['Taux d\'intérêt', tx + ' %'],
-      ['Durée du crédit', du + ' ans'],
-      ['Mensualité crédit estimée', '− ' + fmt(men) + ' €/mois'],
-    ];
-    finRows.forEach(r => { tableRow(r[0], r[1], cy); cy += 7; });
-
-    // Revenus
-    cy += 4;
-    sectionTitle('Revenus & charges locatives', cy);
-    cy += 12;
-    rowAlt = false;
-    const revRows = [
-      ['Loyers annuels bruts', fmt(lo) + ' €/an'],
-      ['Taxe foncière', fmt(tf) + ' €/an'],
-      ['Charges annuelles', fmt(ch) + ' €/an'],
-      ['Charges nettes totales', fmt(tf+ch) + ' €/an'],
-      ['Loyers nets de charges', fmt(lo-tf-ch) + ' €/an'],
-    ];
-    revRows.forEach(r => { tableRow(r[0], r[1], cy); cy += 7; });
-
-    // Rentabilité
-    cy += 4;
-    sectionTitle('Analyse de rentabilité', cy);
-    cy += 12;
-    rowAlt = false;
-    const rentRows = [
-      ['Rentabilité brute', rb + ' %'],
-      ['Rentabilité nette de charges', rn + ' %'],
-      ['Cashflow mensuel net', (cf>=0?'+ ':'− ')+fmt(Math.abs(cf))+' €/mois'],
-      ['Prix au m²', fmt(pm2) + ' €/m²'],
-    ];
-    rentRows.forEach(r => { tableRow(r[0], r[1], cy, true); cy += 7; });
-
-    // Destinataire si renseigné
-    if(de) {
-      cy += 6;
-      doc.setTextColor(...MGREY);
-      doc.setFontSize(8);
-      doc.setFont('helvetica','italic');
-      doc.text('Dossier préparé pour : ' + de, 14, cy);
-    }
-
-    // Footer page 2
-    doc.setFillColor(...LGREY);
-    doc.rect(0, H-14, W, 14, 'F');
-    doc.setFillColor(...GOLD);
-    doc.rect(0, H-14, W, 1, 'F');
-    doc.setTextColor(...MGREY);
-    doc.setFontSize(7);
-    doc.setFont('helvetica','normal');
-    doc.text(ag + ' · Données à titre indicatif — non contractuelles · PropScan', 105, H-6, {align:'center'});
-
-    doc.save('PropScan_Dossier_' + vi.replace(/\s/g,'_') + '.pdf');
-    toast('✓ PDF téléchargé !');
-  } catch(e) {
-    console.error(e);
-    toast('⚠ Erreur PDF — vérifiez la console');
-  }
-}
-
-// ══ LOGO UPLOAD ══
-function uploadLogo(inp, ctx) {
-  if (!inp.files || !inp.files[0]) return;
-  const r = new FileReader();
-  r.onload = e => {
-    const src = e.target.result;
-    if (ctx === 'pdf') {
-      const prev = document.getElementById('pdf-logo-preview');
-      prev.src = src; prev.style.display = 'block';
-      document.getElementById('pdf-logo-placeholder').style.display = 'none';
-    }
-    if (ctx === 'settings') {
-      const sprev = document.getElementById('set-logo-preview');
-      sprev.src = src; sprev.style.display = 'block';
-      document.getElementById('set-logo-placeholder').style.display = 'none';
-    }
-    toast('✓ Logo importé');
-  };
-  r.readAsDataURL(inp.files[0]);
-}
-
-// ══ SYNC ══
-function syncBrand() {
-  const ag = document.getElementById('sa').value || 'PropScan';
-  const col = document.getElementById('sc').value;
-  const pagEl = document.getElementById('pag');
-  if(pagEl) pagEl.value = ag;
-  const pcolEl = document.getElementById('pcol');
-  if(pcolEl) pcolEl.value = col;
-  updatePDFPreview();
-}
-function syncUser() {
-  const p = document.getElementById('sp').value, n = document.getElementById('sn').value;
-  document.getElementById('tb-av').textContent = ((p[0]||'')+(n[0]||'')).toUpperCase()||'JD';
-  document.getElementById('tb-uname').textContent = p + ' ' + n;
-  document.getElementById('greeting').textContent = 'Bonjour, ' + (p||'Jean') + '.';
-}
-
-// ══ SHARE ══
-function genLink() {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let key = '';
-  for (let i = 0; i < 12; i++) key += chars[Math.floor(Math.random() * chars.length)];
-  const lv = document.getElementById('share-link-val');
-  if(lv) lv.textContent = 'https://app.propscan.fr/share/' + key;
-  const sr = document.getElementById('share-result');
-  if(sr) sr.style.display = 'block';
-  toast('✓ Lien de partage créé');
-}
-
-// ══ DVF ══
-function searchDVF() { toast('🔍 Recherche DVF en cours — Marseille 13006...'); }
-
-// ══ FILTERS ══
-document.querySelectorAll('.filter').forEach(f => {
-  f.addEventListener('click', function () {
-    this.closest('.filters').querySelectorAll('.filter').forEach(x => x.classList.remove('on'));
-    this.classList.add('on');
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const href = a.getAttribute('href');
+    if (href === '#') return;
+    e.preventDefault();
+    document.querySelector(href)?.scrollIntoView({behavior:'smooth'});
   });
 });
-
-// ══ INIT ══
-calcPDF(); calcBanque(); calcSim();
 </script>
 </body>
 </html>
