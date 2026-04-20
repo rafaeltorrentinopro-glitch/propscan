@@ -1,7 +1,0 @@
-[build]
-  publish = "."
-  command = "echo ok"
-
-[build.environment]
-  PYTHON_VERSION = "skip"
-  NODE_VERSION = "18"
